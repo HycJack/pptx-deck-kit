@@ -1,0 +1,5 @@
+# 运行时依赖：只用到 python-pptx 一个硬依赖
+python-pptx>=1.0,<2
+
+# 可选：examples/previews/ 里的拼图脚本用 Pillow；跑 lint / 生成 deck 不需要
+# Pillow>=10

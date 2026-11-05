@@ -1,0 +1,23 @@
+# 运行时缓存
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# 生成物（仓库里只留 examples/ 下已验收的成品）
+out*.pptx
+layout-deck.pptx
+theme-sheet.pptx
+*-render/
+preview-*/
+t5.pptx
+t4.pptx
+
+# Office 临时锁文件
+~$*.pptx
+*.tmp
+
+# 系统
+.DS_Store
+Thumbs.db
+desktop.ini
