@@ -91,6 +91,22 @@ class Theme:
                 return block, tc
         return mix(color, self.paper, 0.62), self.ink
 
+    def accent_readable(self, bg_color: str, need: float = 4.5) -> str:
+        """强调色当字、且压在**非纸色**底上时用这个。
+
+        主题级 accent_text 只对 paper 算过对比度；换个局部底色就可能掉下去
+        （grove 的砖红砸在斑马行 #243826 上只剩 2.85）。这里逐级往对比方向混，
+        混不到就退回该底色上的最佳字色。
+        """
+        if contrast(self.accent_text, bg_color) >= need:
+            return self.accent_text
+        target = self.best_on(bg_color)
+        for f in (0.3, 0.5, 0.7, 0.85):
+            c = mix(self.accent_text, target, f)
+            if contrast(c, bg_color) >= need:
+                return c
+        return target
+
     def zebra(self):
         return mix(self.paper, self.rule, 0.5)
 
@@ -350,15 +366,19 @@ def table(slide, th, g, c):
     # 数据行：斑马纹用 paper 与 rule 各半混出来的浅色，不用透明度
     for r, row in enumerate(rows):
         y = top + height * (r + 1)
+        row_bg = th.paper
         if r % 2 == 0:
-            rect(slide, g.M, y, sum(widths), height, fill=th.zebra())
+            row_bg = th.zebra()
+            rect(slide, g.M, y, sum(widths), height, fill=row_bg)
         hairline(slide, th, g.M, y + height - 0.006, sum(widths), h=0.006)
         x = g.M
         for i, cell in enumerate(row):
             last = i == len(row) - 1
             textbox(slide, x + pad, y + 0.13, widths[i] - 2 * pad, 0.3, text=cell,
                     size=th.small,
-                    color=th.accent if last and th.accent_role == "text" else th.ink,
+                    # 评级列用强调色，但要按**行底色**再校一次：斑马行比纸色暗
+                    color=(th.accent_readable(row_bg)
+                           if last and th.accent_role == "text" else th.ink),
                     latin=th.mono if i == 0 or last else th.b_lat, ea=th.b_ea,
                     align=aligns[i])
             x += widths[i]
