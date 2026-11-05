@@ -31,6 +31,55 @@ def call(script: str, *args: str) -> int:
     return subprocess.call([sys.executable, str(SCRIPTS / script), *args])
 
 
+def _theme_slugs() -> list[str]:
+    import json
+
+    doc = json.loads((ROOT / "skill" / "assets" / "themes.json").read_text(encoding="utf-8"))
+    return [t["slug"] for t in doc["themes"] if t.get("ppt_safe")]
+
+
+def verify(only: str, out_dir: str, keep: bool) -> int:
+    """14 套主题 × 13 个版式全排一遍，逐份 lint。
+
+    一套主题干净不代表都干净：版式里用到强调色的地方（评级列、色条、发丝线）
+    在浅纸和深纸上表现完全不同，grove 的砖红砸在斑马行上就掉到 2.85。
+    """
+    import tempfile
+
+    slugs = [s for s in only.split(",") if s] or _theme_slugs()
+    tmp = Path(out_dir) if out_dir else Path(tempfile.mkdtemp(prefix="deckkit-verify-"))
+    tmp.mkdir(parents=True, exist_ok=True)
+    bad: list[str] = []
+    for slug in slugs:
+        pptx = tmp / f"{slug}.pptx"
+        rc = call("preview_layouts.py", str(pptx), "--theme", slug)
+        if rc != 0:
+            bad.append(slug)
+            print(f"{slug:<20} 排版失败")
+            continue
+        log = subprocess.run([sys.executable, str(SCRIPTS / "lint_pptx.py"), str(pptx)],
+                             capture_output=True, text=True, encoding="utf-8", errors="replace")
+        last = [ln for ln in log.stdout.splitlines() if ln.strip()]
+        summary = last[-1].strip() if last else "(无输出)"
+        ok = log.returncode == 0 and "error 0" in summary
+        print(f"{slug:<20} {summary}")
+        if not ok:
+            bad.append(slug)
+            for ln in last[:-1]:
+                print("   " + ln.strip())
+    print()
+    if bad:
+        print(f"失败 {len(bad)} 套：{', '.join(bad)}")
+        print(f"产物留在 {tmp}")
+        return 1
+    print(f"{len(slugs)} 套主题 × 13 个版式全部 lint 干净。")
+    if not keep and not out_dir:
+        import shutil as _sh
+
+        _sh.rmtree(tmp, ignore_errors=True)
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
     p = argparse.ArgumentParser(prog="tasks.py", description="pptx-deck-kit 统一入口")
     sub = p.add_subparsers(dest="cmd", required=True)
@@ -57,6 +106,11 @@ def main(argv: list[str] | None = None) -> int:
     sp = sub.add_parser("fonts", help="查/装自带 OFL 字体（Windows）")
     sp.add_argument("--check", action="store_true", help="只查缺哪些")
     sp.add_argument("--list", action="store_true", help="列出主题用到的字体族")
+
+    sp = sub.add_parser("verify", help="14 套主题各排一份 + lint，全绿才算过（CI 用）")
+    sp.add_argument("--themes", default="", help="只验证这些 slug，逗号分隔")
+    sp.add_argument("--out-dir", default="", help="产物目录，默认临时目录")
+    sp.add_argument("--keep", action="store_true", help="保留产物")
 
     args = p.parse_args(argv)
 
@@ -90,6 +144,8 @@ def main(argv: list[str] | None = None) -> int:
         if Path(out_dir).exists():
             print(f"输出目录已存在（cli.js 会报 mkdir EEXIST）：{out_dir}", file=sys.stderr)
             return 2
+        # cli.js 的 mkdir 不递归：父目录不存在会 ENOENT
+        Path(out_dir).parent.mkdir(parents=True, exist_ok=True)
         rc = subprocess.call([node, cli, "render", "--input", args.pptx,
                               "--output-dir", out_dir, "--dpi", args.dpi])
         pngs = sorted(Path(out_dir).glob("page-*.png"))
@@ -106,6 +162,9 @@ def main(argv: list[str] | None = None) -> int:
         if args.list:
             a.append("--list")
         return call("install_fonts.py", *a)
+
+    if args.cmd == "verify":
+        return verify(args.themes, args.out_dir, args.keep)
 
     return 1
 

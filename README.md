@@ -1,5 +1,7 @@
 # pptx-deck-kit
 
+[![ci](https://github.com/HycJack/pptx-deck-kit/actions/workflows/ci.yml/badge.svg)](https://github.com/HycJack/pptx-deck-kit/actions/workflows/ci.yml)
+
 **把「HTML 模板库里的设计感」搬进真正的 .pptx：14 套主题 × 13 种版式 = 182 种页面，
 外带一个会挑错的 linter 和一套必须看渲染图才算完的验收流程。**
 
@@ -115,7 +117,7 @@ build_slide(prs, theme_json, "kpi-grid", {"kicker": ..., "title": ..., "kpis": [
 同一套 13 页换 `studio`（深底亮字）：[预览](examples/previews/layouts-studio-overview.png)。
 两轴相乘 14 × 13 = 182 种页面，代码量只是 13 个函数 + 14 条色卡。
 
-## 主题给版式的 5 个颜色 API
+## 主题给版式的 6 个颜色 API
 
 版式里**不许**直接用 `accent` 画字。这不是风格洁癖——实测 14 套主题里 5 套的强调色在纸色上
 对比度只有 1.0–1.8（`#E6FF3D / #ECECE8 = 1.06`），当字就是彻底消失。
@@ -127,6 +129,7 @@ build_slide(prs, theme_json, "kpi-grid", {"kicker": ..., "title": ..., "kpis": [
 | `accent2_mark` | 装饰引号、次要记号 | 同上 |
 | `on_ink` | 反色页上的强调元素 | 整页铺墨色后，7/14 套的强调色同样会消失 |
 | `tint_pair()` | 图位 / 色块 | 返回 `(块色, 字色)`，保证 4.5 |
+| `accent_readable(bg)` | 压在**非纸色**底上的强调字 | 按局部底色现算：主题级 `accent_text` 只对纸色验过，表格斑马行上会掉到 2.85（grove 的砖红实测），这里逐级混到够 4.5 |
 
 `accent` 本身只用于面积 ≥0.5in 的色块——那时候亮色才是效果，不是缺陷。
 
@@ -144,6 +147,12 @@ build_slide(prs, theme_json, "kpi-grid", {"kicker": ..., "title": ..., "kpis": [
 | R6 | 中文 run 缺 `a:ea`（会掉回默认字体，一行两种字形） |
 | R7 | 中文段落 `algn="just"`（实测不拉伸，纯白设） |
 | R8 | 文字色 vs **局部底色**对比度 <3.0（表头那种「纸色字压墨色块」必须查局部，查整页会误报 1.00） |
+
+全套验收一条命令（CI 跑的就是这个）：
+
+```bash
+python tasks.py verify          # 14 套主题 × 13 个版式各排一份 + lint，全绿才 exit 0
+```
 
 判据是「**读回来和写进去一致**」，不是「能打开」——PowerPoint 对非法 XML 静默丢弃。
 所以再补一步渲染逐页看：

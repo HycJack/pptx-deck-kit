@@ -70,6 +70,7 @@ refs 里另有 `arch-diagram`、`gantt`、`image-gallery`、`image-grid`、
 | `accent2_mark` | 装饰引号、次要记号 | 同上，`accent2` 多半是浅色（editorial 1.74 / signal 1.14） |
 | `on_ink` | 反色页上的强调元素 | 整页铺 `ink` 后，深强调色同样会消失（14 套里 7 套 accent/ink < 3.0） |
 | `tint_pair(color)` | 图位/色块 | 返回 `(块色, 字色)`，保证对比度 ≥4.5。深色主题里中灰块上墨色纸色都不够看，得换块的深浅 |
+| `accent_readable(bg)` | 压在非纸色底上的强调字（表格评级列） | 主题级 `accent_text` 只对纸色验过对比度；换到斑马行/色块上要按局部底色现算，否则 grove 的砖红在 `#243826` 上只有 2.85 |
 
 `accent` 本身只用于面积 ≥0.5in 的色块（`stat-highlight` 的强调色块、表格表头、
 整页底色）——那时候亮色才是效果，不是缺陷。
@@ -112,8 +113,10 @@ python scripts/lint_pptx.py out.pptx     # 必须 error 0 / warn 0
 # 渲染看图，逐页看，不要抽样
 ```
 
-验收三条：`lint` 干净、渲染图上文字不压形状（R4 只比文本框，不管压色块）、
-换到 `studio`（深底亮字）和 `neo-grid-bold`（高饱和强调色）还能看。
+验收四条：`lint` 干净、渲染图上文字不压形状（R4 只比文本框，不管压色块）、
+换到 `studio`（深底亮字）和 `neo-grid-bold`（高饱和强调色）还能看、
+**14 套主题全排一遍**（`python tasks.py verify`）——一套干净不代表都干净，
+强调色落在浅纸和深纸上的对比度完全不同。
 
 ## 6. 为什么不是「14 套主题各做一套版式」
 

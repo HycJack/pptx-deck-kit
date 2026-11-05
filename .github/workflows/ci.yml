@@ -1,0 +1,59 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  verify:
+    name: py${{ matrix.python }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ["3.10", "3.12"]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "${{ matrix.python }}"
+
+      - name: 装依赖
+        run: pip install -r requirements.txt
+
+      - name: 语法检查
+        run: python -m compileall -q skill/scripts tasks.py
+
+      - name: 14 套主题 × 13 个版式全部 lint（error 必须为 0）
+        run: python tasks.py verify --out-dir /tmp/verify
+
+      - name: 主题样张也能过 lint
+        run: |
+          python tasks.py sheet --out /tmp/sheet.pptx
+          python tasks.py lint /tmp/sheet.pptx
+
+      - name: 打包产物（失败时人工看）
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sample-deck-py${{ matrix.python }}
+          path: |
+            /tmp/sheet.pptx
+            /tmp/verify/**/*.pptx
+          if-no-files-found: ignore
+
+  go-writer:
+    name: go writer 能编译
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: vendor/genppt
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.24"
+      - run: go build ./...
