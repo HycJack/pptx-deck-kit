@@ -1,0 +1,1307 @@
+{
+  "schema": 1,
+  "provenance": {
+    "upstream": "beautiful-html-templates (34 templates)",
+    "repo": "https://github.com/zarazhangrui/beautiful-html-templates",
+    "commit": "e5e204fb1f3b06290846e7dcd7aceddabeceec8c",
+    "regenerate": "THEMES_REFS=<path>/beautiful-html-templates/templates python scripts/build_themes.py",
+    "adaptation": [
+      "自由颜色键名 → 固定角色 paper/ink/accent/accent2/rule",
+      "px 字号 → 实测过的 pt 阶梯 54/36/24/15/12/8.5（display 按主题调 54-72）",
+      "web font → skill 自带 OFL 字体；缺字体时按 fonts_fallback 降级",
+      "lineHeight: em → a:spcPct 千分比（实测 100% = 1.2x 字号）",
+      "letterSpacing: em → 磅；中文强制 0（方块字加字距会散）",
+      "按对比度判定 accent 只能当块还是可以当字"
+    ]
+  },
+  "roles": [
+    "paper",
+    "ink",
+    "accent",
+    "accent2",
+    "rule"
+  ],
+  "type_ladder": {
+    "h1": 36,
+    "lead": 24,
+    "body": 15,
+    "small": 12,
+    "label": 8.5
+  },
+  "fonts_bundled": [
+    "Instrument Serif",
+    "Bebas Neue",
+    "Barlow",
+    "Barlow Condensed",
+    "IBM Plex Mono"
+  ],
+  "themes": [
+    {
+      "slug": "editorial-forest",
+      "name": "Editorial Forest",
+      "name_zh": "纸与墨",
+      "register": "editorial",
+      "density": "medium",
+      "formality": "medium",
+      "mood": [
+        "editorial",
+        "quiet",
+        "considered",
+        "warm"
+      ],
+      "palette": {
+        "paper": "#efe7d4",
+        "ink": "#1a1a17",
+        "accent": "#2e4a2a",
+        "accent2": "#e89cb1",
+        "rule": "#d8d0be"
+      },
+      "derived_roles": [
+        "rule"
+      ],
+      "accent_role": "text",
+      "accent_text_color": "#FFFFFF",
+      "contrast": {
+        "ink_on_paper": 14.16,
+        "accent_on_paper": 8.01,
+        "ink_on_accent": 1.77,
+        "white_on_accent": 9.86
+      },
+      "font_preset": "serif-editorial",
+      "fonts": {
+        "display_latin": "Instrument Serif",
+        "display_ea": "华文宋体",
+        "body_latin": "Georgia",
+        "body_ea": "宋体",
+        "mono": "IBM Plex Mono"
+      },
+      "fonts_fallback": {
+        "display_latin": "Georgia",
+        "display_ea": "华文宋体",
+        "body_latin": "Georgia",
+        "body_ea": "宋体",
+        "mono": "Consolas"
+      },
+      "fonts_bundled": [
+        "Instrument Serif",
+        "IBM Plex Mono"
+      ],
+      "fonts_html": {
+        "serif": "Source Serif 4",
+        "mono": "JetBrains Mono",
+        "style": "humanist editorial serif with a technical mono for kickers and labels; restrained typographic hierarchy"
+      },
+      "type": {
+        "display_pt": 54,
+        "h1_pt": 36,
+        "lead_pt": 24,
+        "body_pt": 15,
+        "small_pt": 12,
+        "label_pt": 8.5,
+        "display_ratio": 3.6,
+        "display_lh_pct": 76667,
+        "body_lh_pct": 120833,
+        "display_lh_em": 0.92,
+        "body_lh_em": 1.45,
+        "tracking_display_pt": -1.08,
+        "tracking_display_cjk_pt": 0.0,
+        "tracking_label_pt": 1.36
+      },
+      "usage": {
+        "best_for": "Anything that should feel like a considered editorial — quarterly reviews, internal readouts, studio updates, creative-agency presentations. Equally good for any deck that wants to feel warm and unhurried rather than corporate, including research recaps, book or program announcements, and team retrospectives.",
+        "avoid_for": "Contexts that need to feel urgent, punchy, or sales-driven — the palette and rhythm are intentionally quiet.",
+        "note": "季度回顾、内部汇报、工作室更新。安静，不催人。"
+      },
+      "notable_accents": [],
+      "ppt_safe": true,
+      "source": "beautiful-html-templates/templates/editorial-forest/template.json"
+    },
+    {
+      "slug": "cobalt-grid",
+      "name": "Cobalt Grid",
+      "name_zh": "电光蓝",
+      "register": "technical",
+      "density": "medium",
+      "formality": "high",
+      "mood": [
+        "editorial",
+        "design-research",
+        "studious",
+        "modernist"
+      ],
+      "palette": {
+        "paper": "#F0EBDE",
+        "ink": "#1F2BE0",
+        "accent": "#5560E5",
+        "accent2": "#1A1A17",
+        "rule": "#C9C2B2"
+      },
+      "derived_roles": [
+        "accent2",
+        "rule"
+      ],
+      "accent_role": "text",
+      "accent_text_color": "#FFFFFF",
+      "contrast": {
+        "ink_on_paper": 7.11,
+        "accent_on_paper": 4.21,
+        "ink_on_accent": 1.69,
+        "white_on_accent": 5.01
+      },
+      "font_preset": "grotesque",
+      "fonts": {
+        "display_latin": "Barlow",
+        "display_ea": "微软雅黑",
+        "body_latin": "Barlow",
+        "body_ea": "等线 Light",
+        "mono": "IBM Plex Mono"
+      },
+      "fonts_fallback": {
+        "display_latin": "Segoe UI Semibold",
+        "display_ea": "微软雅黑",
+        "body_latin": "Segoe UI",
+        "body_ea": "等线 Light",
+        "mono": "Consolas"
+      },
+      "fonts_bundled": [
+        "Barlow",
+        "IBM Plex Mono"
+      ],
+      "fonts_html": {
+        "display": "Newsreader",
+        "body": "Hanken Grotesk",
+        "mono": "DM Mono",
+        "style": "transitional serif for hero type and section heads, paired with a neutral grotesk for body and a clean mono for tabular data and micro-captions; strictly cobalt-on-cream"
+      },
+      "type": {
+        "display_pt": 54,
+        "h1_pt": 36,
+        "lead_pt": 24,
+        "body_pt": 15,
+        "small_pt": 12,
+        "label_pt": 8.5,
+        "display_ratio": 3.6,
+        "display_lh_pct": 81667,
+        "body_lh_pct": 125000,
+        "display_lh_em": 0.98,
+        "body_lh_em": 1.5,
+        "tracking_display_pt": -0.54,
+        "tracking_display_cjk_pt": 0.0,
+        "tracking_label_pt": 1.36
+      },
+      "usage": {
+        "best_for": "Anything that should feel like a quietly serious design / research bulletin, art publication, or curated trend report. Strong for studio annuals, agency capabilities decks, design-research publications, architecture / art / academic decks, and any deck wanting one strict accent colour and a printed-ledger calmness rather than corporate polish.",
+        "avoid_for": "Decks that need warmth, multi-colour energy, or a casual / playful voice — the strict cobalt + cream + grid palette is intentionally austere.",
+        "note": "技术方案、架构评审。全身蓝色文字是这套的性格，别加第二个彩色。"
+      },
+      "notable_accents": [],
+      "ppt_safe": true,
+      "source": "beautiful-html-templates/templates/cobalt-grid/template.json"
+    },
+    {
+      "slug": "signal",
+      "name": "Signal",
+      "name_zh": "夜航金",
+      "register": "formal-dark",
+      "density": "high",
+      "formality": "high",
+      "mood": [
+        "institutional",
+        "trustworthy",
+        "considered",
+        "weighty"
+      ],
+      "palette": {
+        "paper": "#1c2644",
+        "ink": "#e2dcd0",
+        "accent": "#c8a870",
+        "accent2": "#232f55",
+        "rule": "#3A4568"
+      },
+      "derived_roles": [
+        "rule"
+      ],
+      "accent_role": "text",
+      "accent_text_color": "#FFFFFF",
+      "contrast": {
+        "ink_on_paper": 10.91,
+        "accent_on_paper": 6.59,
+        "ink_on_accent": 1.66,
+        "white_on_accent": 2.26
+      },
+      "font_preset": "serif-editorial",
+      "fonts": {
+        "display_latin": "Instrument Serif",
+        "display_ea": "华文宋体",
+        "body_latin": "Georgia",
+        "body_ea": "宋体",
+        "mono": "IBM Plex Mono"
+      },
+      "fonts_fallback": {
+        "display_latin": "Georgia",
+        "display_ea": "华文宋体",
+        "body_latin": "Georgia",
+        "body_ea": "宋体",
+        "mono": "Consolas"
+      },
+      "fonts_bundled": [
+        "Instrument Serif",
+        "IBM Plex Mono"
+      ],
+      "fonts_html": {
+        "display": "Source Serif 4",
+        "body": "DM Sans",
+        "mono": "IBM Plex Mono",
+        "serif_cn": "Noto Serif SC",
+        "sans_cn": "Noto Sans SC",
+        "style": "transitional serif headlines + clean sans body + technical mono captions; full Chinese serif/sans support"
+      },
+      "type": {
+        "display_pt": 54,
+        "h1_pt": 36,
+        "lead_pt": 24,
+        "body_pt": 15,
+        "small_pt": 12,
+        "label_pt": 8.5,
+        "display_ratio": 3.6,
+        "display_lh_pct": 79167,
+        "body_lh_pct": 120833,
+        "display_lh_em": 0.95,
+        "body_lh_em": 1.45,
+        "tracking_display_pt": -1.08,
+        "tracking_display_cjk_pt": 0.0,
+        "tracking_label_pt": 1.53
+      },
+      "usage": {
+        "best_for": "Anything that should feel weighty, considered, and credibly institutional: investor decks, board presentations, consulting deliverables, legal / policy briefs, advisory pitches. Also a strong choice for tech, research, or brand work that wants to read as quietly authoritative rather than loud.",
+        "avoid_for": "Contexts that should feel hot, fast, or intentionally playful — the navy + gold restraint commits to a sober voice.",
+        "note": "年报、董事会、对外正式发布。深底 + 金，庄重但不冷漠。"
+      },
+      "notable_accents": [],
+      "ppt_safe": true,
+      "source": "beautiful-html-templates/templates/signal/template.json"
+    },
+    {
+      "slug": "neo-grid-bold",
+      "name": "Neo-Grid Bold",
+      "name_zh": "酸绿网格",
+      "register": "technical",
+      "density": "high",
+      "formality": "medium",
+      "mood": [
+        "confident",
+        "punchy",
+        "editorial",
+        "modern"
+      ],
+      "palette": {
+        "paper": "#ECECE8",
+        "ink": "#0A0A0A",
+        "accent": "#E6FF3D",
+        "accent2": "#8A8A85",
+        "rule": "#CFCFC8"
+      },
+      "derived_roles": [
+        "rule"
+      ],
+      "accent_role": "block",
+      "accent_text_color": "#0A0A0A",
+      "contrast": {
+        "ink_on_paper": 16.72,
+        "accent_on_paper": 1.06,
+        "ink_on_accent": 17.66,
+        "white_on_accent": 1.12
+      },
+      "font_preset": "condensed",
+      "fonts": {
+        "display_latin": "Barlow Condensed",
+        "display_ea": "微软雅黑",
+        "body_latin": "Barlow",
+        "body_ea": "等线 Light",
+        "mono": "IBM Plex Mono"
+      },
+      "fonts_fallback": {
+        "display_latin": "Arial Narrow",
+        "display_ea": "微软雅黑",
+        "body_latin": "Segoe UI",
+        "body_ea": "等线 Light",
+        "mono": "Consolas"
+      },
+      "fonts_bundled": [
+        "Barlow Condensed",
+        "Barlow",
+        "IBM Plex Mono"
+      ],
+      "fonts_html": {
+        "display": "Space Grotesk",
+        "body": "Space Grotesk",
+        "mono": "JetBrains Mono",
+        "style": "geometric sans paired with technical mono captions; uppercase display weight"
+      },
+      "type": {
+        "display_pt": 64,
+        "h1_pt": 36,
+        "lead_pt": 24,
+        "body_pt": 15,
+        "small_pt": 12,
+        "label_pt": 8.5,
+        "display_ratio": 4.27,
+        "display_lh_pct": 75000,
+        "body_lh_pct": 120833,
+        "display_lh_em": 0.9,
+        "body_lh_em": 1.45,
+        "tracking_display_pt": -1.92,
+        "tracking_display_cjk_pt": 0.0,
+        "tracking_label_pt": 1.53
+      },
+      "usage": {
+        "best_for": "Anything that should feel confident and editorial-graphic: design-led pitches, brand work, founder talks, conference keynotes. Excellent for stat-heavy slides, comparisons, and process flows. Just as strong for tech, research, or finance when the speaker wants to read as design-led rather than corporate.",
+        "avoid_for": "Contexts that need to feel quiet, traditional, or warm — the neon-yellow accent and uppercase display commit to a confident editorial voice.",
+        "note": "产品发布、建筑/工业题材。酸绿只能做色块和横条，做字会消失。"
+      },
+      "notable_accents": [],
+      "ppt_safe": true,
+      "source": "beautiful-html-templates/templates/neo-grid-bold/template.json"
+    },
+    {
+      "slug": "bold-poster",
+      "name": "Bold Poster",
+      "name_zh": "黑红宣言",
+      "register": "poster",
+      "density": "low",
+      "formality": "medium",
+      "mood": [
+        "bold",
+        "editorial",
+        "loud",
+        "confident"
+      ],
+      "palette": {
+        "paper": "#F5F2EF",
+        "ink": "#1C1410",
+        "accent": "#D8000F",
+        "accent2": "#8A8580",
+        "rule": "#D8D4D0"
+      },
+      "derived_roles": [
+        "accent2",
+        "rule"
+      ],
+      "accent_role": "text",
+      "accent_text_color": "#FFFFFF",
+      "contrast": {
+        "ink_on_paper": 16.28,
+        "accent_on_paper": 4.8,
+        "ink_on_accent": 3.39,
+        "white_on_accent": 5.35
+      },
+      "font_preset": "poster-condensed",
+      "fonts": {
+        "display_latin": "Bebas Neue",
+        "display_ea": "微软雅黑",
+        "body_latin": "Barlow",
+        "body_ea": "微软雅黑",
+        "mono": "IBM Plex Mono"
+      },
+      "fonts_fallback": {
+        "display_latin": "Arial Narrow",
+        "display_ea": "微软雅黑",
+        "body_latin": "Segoe UI",
+        "body_ea": "微软雅黑",
+        "mono": "Consolas"
+      },
+      "fonts_bundled": [
+        "Bebas Neue",
+        "Barlow",
+        "IBM Plex Mono"
+      ],
+      "fonts_html": {
+        "display": "Shrikhand",
+        "serif": "Libre Baskerville",
+        "body": "Space Grotesk",
+        "style": "groovy display + editorial serif + grotesk body; very high typographic contrast"
+      },
+      "type": {
+        "display_pt": 72,
+        "h1_pt": 36,
+        "lead_pt": 24,
+        "body_pt": 15,
+        "small_pt": 12,
+        "label_pt": 8.5,
+        "display_ratio": 4.8,
+        "display_lh_pct": 73333,
+        "body_lh_pct": 116667,
+        "display_lh_em": 0.88,
+        "body_lh_em": 1.4,
+        "tracking_display_pt": -2.16,
+        "tracking_display_cjk_pt": 0.0,
+        "tracking_label_pt": 1.7
+      },
+      "usage": {
+        "best_for": "Anything that should land like a magazine cover: brand manifestos, founder vision decks, editorial / cultural pitches, creative reviews. Excellent any time you want a few words to feel like a poster — including unexpected fits like a tech keynote or a finance manifesto that wants to be quotable.",
+        "avoid_for": "Decks that need to communicate dense information per slide — the layout is built around a few large statements, not paragraphs of detail.",
+        "note": "宣言、促销、对外主张。字号要大到有点过分才对。"
+      },
+      "notable_accents": [],
+      "ppt_safe": true,
+      "source": "beautiful-html-templates/templates/bold-poster/template.json"
+    },
+    {
+      "slug": "monochrome",
+      "name": "Monochrome",
+      "name_zh": "素纸",
+      "register": "minimal",
+      "density": "high",
+      "formality": "high",
+      "mood": [
+        "restrained",
+        "literary",
+        "archival",
+        "ledger"
+      ],
+      "palette": {
+        "paper": "#fafadf",
+        "ink": "#1a1a16",
+        "accent": "#5e5e54",
+        "accent2": "#D8D8B8",
+        "rule": "#C4C4A4"
+      },
+      "derived_roles": [
+        "accent2",
+        "rule"
+      ],
+      "accent_role": "text",
+      "accent_text_color": "#FFFFFF",
+      "contrast": {
+        "ink_on_paper": 16.46,
+        "accent_on_paper": 6.18,
+        "ink_on_accent": 2.66,
+        "white_on_accent": 6.55
+      },
+      "font_preset": "serif-warm",
+      "fonts": {
+        "display_latin": "Instrument Serif",
+        "display_ea": "华文宋体",
+        "body_latin": "Constantia",
+        "body_ea": "宋体",
+        "mono": "IBM Plex Mono"
+      },
+      "fonts_fallback": {
+        "display_latin": "Constantia",
+        "display_ea": "华文宋体",
+        "body_latin": "Constantia",
+        "body_ea": "宋体",
+        "mono": "Consolas"
+      },
+      "fonts_bundled": [
+        "Instrument Serif",
+        "IBM Plex Mono"
+      ],
+      "fonts_html": {
+        "display": "Lora",
+        "body": "Jost",
+        "mono": "JetBrains Mono",
+        "serif_cn": "Noto Serif SC",
+        "sans_cn": "Noto Sans SC",
+        "style": "literary serif headlines + clean geometric sans body + technical mono; reads like a hand-typeset ledger"
+      },
+      "type": {
+        "display_pt": 54,
+        "h1_pt": 36,
+        "lead_pt": 24,
+        "body_pt": 15,
+        "small_pt": 12,
+        "label_pt": 8.5,
+        "display_ratio": 3.6,
+        "display_lh_pct": 79167,
+        "body_lh_pct": 129167,
+        "display_lh_em": 0.95,
+        "body_lh_em": 1.55,
+        "tracking_display_pt": -0.54,
+        "tracking_display_cjk_pt": 0.0,
+        "tracking_label_pt": 1.53
+      },
+      "usage": {
+        "best_for": "Anything that should feel like a hand-typeset ledger: user research synthesis, white papers, longform reports, academic and policy briefs, advisory deliverables, bilingual EN/CN reports. Equally good for tech, design, or brand decks that want their words to be the only thing on the page.",
+        "avoid_for": "Decks that need visual personality or color-led storytelling — the all-ink palette is intentionally austere.",
+        "note": "文字为主的稿子、讲稿、内部备忘录。完全没有彩色，靠字号和留白。"
+      },
+      "notable_accents": [],
+      "ppt_safe": true,
+      "source": "beautiful-html-templates/templates/monochrome/template.json"
+    },
+    {
+      "slug": "biennale-yellow",
+      "name": "Biennale Yellow",
+      "name_zh": "双年展黄",
+      "register": "cultural",
+      "density": "medium",
+      "formality": "high",
+      "mood": [
+        "editorial",
+        "atmospheric",
+        "warm",
+        "cultural-institution"
+      ],
+      "palette": {
+        "paper": "#E9E5DB",
+        "ink": "#1B2566",
+        "accent": "#F1EE2E",
+        "accent2": "#E26B4A",
+        "rule": "#C8C2B2"
+      },
+      "derived_roles": [
+        "rule"
+      ],
+      "accent_role": "block",
+      "accent_text_color": "#1B2566",
+      "contrast": {
+        "ink_on_paper": 11.11,
+        "accent_on_paper": 1.02,
+        "ink_on_accent": 11.32,
+        "white_on_accent": 1.23
+      },
+      "font_preset": "serif-warm",
+      "fonts": {
+        "display_latin": "Instrument Serif",
+        "display_ea": "华文宋体",
+        "body_latin": "Constantia",
+        "body_ea": "宋体",
+        "mono": "IBM Plex Mono"
+      },
+      "fonts_fallback": {
+        "display_latin": "Constantia",
+        "display_ea": "华文宋体",
+        "body_latin": "Constantia",
+        "body_ea": "宋体",
+        "mono": "Consolas"
+      },
+      "fonts_bundled": [
+        "Instrument Serif",
+        "IBM Plex Mono"
+      ],
+      "fonts_html": {
+        "display": "Instrument Serif",
+        "body": "Archivo",
+        "mono": "JetBrains Mono",
+        "style": "transitional Didone-flavored display serif paired with a clean grotesk sans for micro-typography and a mono for tabular data"
+      },
+      "type": {
+        "display_pt": 60,
+        "h1_pt": 36,
+        "lead_pt": 24,
+        "body_pt": 15,
+        "small_pt": 12,
+        "label_pt": 8.5,
+        "display_ratio": 4.0,
+        "display_lh_pct": 76667,
+        "body_lh_pct": 120833,
+        "display_lh_em": 0.92,
+        "body_lh_em": 1.45,
+        "tracking_display_pt": -1.2,
+        "tracking_display_cjk_pt": 0.0,
+        "tracking_label_pt": 1.36
+      },
+      "usage": {
+        "best_for": "Anything that should feel like an art-biennale poster or a museum's annual programme: exhibition decks, arts-institution announcements, design conference brochures, curatorial pitches, literary publications, studio retrospectives. Equally good for any deck wanting Dutch-editorial atmosphere with an unmistakable single-color signature.",
+        "avoid_for": "Decks that need visual punch or saturated multi-color energy — the warm-paper canvas and one-yellow palette are intentionally quiet and atmospheric.",
+        "note": "展览、文化活动、品牌提案。亮黄必须配深蓝字，白字会瞎。"
+      },
+      "notable_accents": [],
+      "ppt_safe": true,
+      "source": "beautiful-html-templates/templates/biennale-yellow/template.json"
+    },
+    {
+      "slug": "mat",
+      "name": "Mat",
+      "name_zh": "苔绿琥珀",
+      "register": "editorial-dark",
+      "density": "medium",
+      "formality": "medium",
+      "mood": [
+        "warm-modern",
+        "considered",
+        "tactile",
+        "mid-century"
+      ],
+      "palette": {
+        "paper": "#232e26",
+        "ink": "#f0e8d2",
+        "accent": "#c07030",
+        "accent2": "#ede6d0",
+        "rule": "#3A4A3C"
+      },
+      "derived_roles": [
+        "rule"
+      ],
+      "accent_role": "text",
+      "accent_text_color": "#FFFFFF",
+      "contrast": {
+        "ink_on_paper": 11.53,
+        "accent_on_paper": 3.76,
+        "ink_on_accent": 3.07,
+        "white_on_accent": 3.75
+      },
+      "font_preset": "grotesque",
+      "fonts": {
+        "display_latin": "Barlow",
+        "display_ea": "微软雅黑",
+        "body_latin": "Barlow",
+        "body_ea": "等线 Light",
+        "mono": "IBM Plex Mono"
+      },
+      "fonts_fallback": {
+        "display_latin": "Segoe UI Semibold",
+        "display_ea": "微软雅黑",
+        "body_latin": "Segoe UI",
+        "body_ea": "等线 Light",
+        "mono": "Consolas"
+      },
+      "fonts_bundled": [
+        "Barlow",
+        "IBM Plex Mono"
+      ],
+      "fonts_html": {
+        "display": "Bricolage Grotesque",
+        "body": "DM Sans",
+        "mono": "DM Mono",
+        "cn": "Noto Sans SC",
+        "style": "expressive variable grotesk display + clean DM body + DM Mono captions"
+      },
+      "type": {
+        "display_pt": 54,
+        "h1_pt": 36,
+        "lead_pt": 24,
+        "body_pt": 15,
+        "small_pt": 12,
+        "label_pt": 8.5,
+        "display_ratio": 3.6,
+        "display_lh_pct": 79167,
+        "body_lh_pct": 125000,
+        "display_lh_em": 0.95,
+        "body_lh_em": 1.5,
+        "tracking_display_pt": -1.08,
+        "tracking_display_cjk_pt": 0.0,
+        "tracking_label_pt": 1.53
+      },
+      "usage": {
+        "best_for": "Anything that should feel mid-century, tactile, and intentional: design studio credentials, architecture / interior brands, ceramics / craft / furniture, advisory decks. Also a warm, distinctive choice for tech, research, or business decks that want a considered analog feel instead of digital-cool.",
+        "avoid_for": "Contexts that need fast tech energy or institutional restraint — the muted sage and burnt-orange palette is intentionally warm and slow.",
+        "note": "材质、工艺、食物、慢生活。暗绿底配琥珀，像纸垫上的样品。"
+      },
+      "notable_accents": [],
+      "ppt_safe": true,
+      "source": "beautiful-html-templates/templates/mat/template.json"
+    },
+    {
+      "slug": "long-table",
+      "name": "Long Table",
+      "name_zh": "长桌赭红",
+      "register": "cultural",
+      "density": "medium",
+      "formality": "medium",
+      "mood": [
+        "warm",
+        "intimate",
+        "modern",
+        "friendly"
+      ],
+      "palette": {
+        "paper": "#FAF1E2",
+        "ink": "#8E2D1F",
+        "accent": "#B53D2A",
+        "accent2": "#6B5B4A",
+        "rule": "#DCCDB8"
+      },
+      "derived_roles": [
+        "accent2",
+        "rule"
+      ],
+      "accent_role": "text",
+      "accent_text_color": "#FFFFFF",
+      "contrast": {
+        "ink_on_paper": 7.36,
+        "accent_on_paper": 5.11,
+        "ink_on_accent": 1.44,
+        "white_on_accent": 5.73
+      },
+      "font_preset": "condensed",
+      "fonts": {
+        "display_latin": "Barlow Condensed",
+        "display_ea": "微软雅黑",
+        "body_latin": "Barlow",
+        "body_ea": "等线 Light",
+        "mono": "IBM Plex Mono"
+      },
+      "fonts_fallback": {
+        "display_latin": "Arial Narrow",
+        "display_ea": "微软雅黑",
+        "body_latin": "Segoe UI",
+        "body_ea": "等线 Light",
+        "mono": "Consolas"
+      },
+      "fonts_bundled": [
+        "Barlow Condensed",
+        "Barlow",
+        "IBM Plex Mono"
+      ],
+      "fonts_html": {
+        "display": "Bricolage Grotesque",
+        "body": "Fraunces",
+        "style": "bold uppercase Bricolage Grotesque for hero / chapter titles paired with Fraunces for body, captions, button labels, and tagline — a contemporary mix-and-match modern editorial pairing"
+      },
+      "type": {
+        "display_pt": 54,
+        "h1_pt": 36,
+        "lead_pt": 24,
+        "body_pt": 15,
+        "small_pt": 12,
+        "label_pt": 8.5,
+        "display_ratio": 3.6,
+        "display_lh_pct": 83333,
+        "body_lh_pct": 125000,
+        "display_lh_em": 1.0,
+        "body_lh_em": 1.5,
+        "tracking_display_pt": 0.0,
+        "tracking_display_cjk_pt": 0.0,
+        "tracking_label_pt": 1.36
+      },
+      "usage": {
+        "best_for": "Anything that should feel like a warm, intimate, modern hospitality / community brand: supper clubs, dinner series, small restaurants, creative-studio events, membership pitches, lifestyle and wine brands. Equally good for any deck wanting a single warm accent colour, mixed-weight typography, and a social-media-aware modern-editorial voice.",
+        "avoid_for": "Decks that need corporate polish, technical density, or a cold / minimalist register — the rust-red palette and bold serif mix are intentionally warm and people-facing.",
+        "note": "餐饮、酒单、菜单式清单。全身赭红文字，像印章。"
+      },
+      "notable_accents": [],
+      "ppt_safe": true,
+      "source": "beautiful-html-templates/templates/long-table/template.json"
+    },
+    {
+      "slug": "soft-editorial",
+      "name": "Soft Editorial",
+      "name_zh": "柔和三色",
+      "register": "editorial",
+      "density": "low",
+      "formality": "high",
+      "mood": [
+        "literary",
+        "elegant",
+        "quiet",
+        "warm-classical"
+      ],
+      "palette": {
+        "paper": "#F2EEDF",
+        "ink": "#2A241B",
+        "accent": "#E1A4C2",
+        "accent2": "#B7C7A8",
+        "rule": "#D5D0C0"
+      },
+      "derived_roles": [
+        "rule"
+      ],
+      "accent_role": "block",
+      "accent_text_color": "#2A241B",
+      "contrast": {
+        "ink_on_paper": 13.22,
+        "accent_on_paper": 1.76,
+        "ink_on_accent": 7.53,
+        "white_on_accent": 2.04
+      },
+      "font_preset": "serif-warm",
+      "fonts": {
+        "display_latin": "Instrument Serif",
+        "display_ea": "华文宋体",
+        "body_latin": "Constantia",
+        "body_ea": "宋体",
+        "mono": "IBM Plex Mono"
+      },
+      "fonts_fallback": {
+        "display_latin": "Constantia",
+        "display_ea": "华文宋体",
+        "body_latin": "Constantia",
+        "body_ea": "宋体",
+        "mono": "Consolas"
+      },
+      "fonts_bundled": [
+        "Instrument Serif",
+        "IBM Plex Mono"
+      ],
+      "fonts_html": {
+        "display": "Cormorant Garamond",
+        "body": "Work Sans",
+        "style": "high-contrast garalde serif headlines paired with a clean humanist sans body"
+      },
+      "type": {
+        "display_pt": 54,
+        "h1_pt": 36,
+        "lead_pt": 24,
+        "body_pt": 15,
+        "small_pt": 12,
+        "label_pt": 8.5,
+        "display_ratio": 3.6,
+        "display_lh_pct": 83333,
+        "body_lh_pct": 129167,
+        "display_lh_em": 1.0,
+        "body_lh_em": 1.55,
+        "tracking_display_pt": -0.54,
+        "tracking_display_cjk_pt": 0.0,
+        "tracking_label_pt": 1.36
+      },
+      "usage": {
+        "best_for": "Anything that should feel literary, elegant, and unhurried: editorial features, longform brand stories, gallery / museum decks, advisory deliverables, wedding / lifestyle media, founder essays. Equally good for tech, research, or business decks that want a Sunday-supplement warmth instead of corporate polish.",
+        "avoid_for": "Decks that need visual heat or punch — the warm-paper palette and Cormorant serif are intentionally quiet.",
+        "note": "女性向品牌、生活方式、课程介绍。粉+鼠尾草绿当色块，文字用墨色。"
+      },
+      "notable_accents": [],
+      "ppt_safe": true,
+      "source": "beautiful-html-templates/templates/soft-editorial/template.json"
+    },
+    {
+      "slug": "emerald-editorial",
+      "name": "Emerald Editorial",
+      "name_zh": "祖母绿",
+      "register": "editorial",
+      "density": "medium",
+      "formality": "medium-high",
+      "mood": [
+        "editorial",
+        "considered",
+        "confident",
+        "magazine-cover"
+      ],
+      "palette": {
+        "paper": "#F1E9D6",
+        "ink": "#0F1A5C",
+        "accent": "#3CD896",
+        "accent2": "#B8AE95",
+        "rule": "#D0C8B2"
+      },
+      "derived_roles": [
+        "accent2",
+        "rule"
+      ],
+      "accent_role": "block",
+      "accent_text_color": "#0F1A5C",
+      "contrast": {
+        "ink_on_paper": 13.13,
+        "accent_on_paper": 1.52,
+        "ink_on_accent": 8.66,
+        "white_on_accent": 1.83
+      },
+      "font_preset": "serif-editorial",
+      "fonts": {
+        "display_latin": "Instrument Serif",
+        "display_ea": "华文宋体",
+        "body_latin": "Georgia",
+        "body_ea": "宋体",
+        "mono": "IBM Plex Mono"
+      },
+      "fonts_fallback": {
+        "display_latin": "Georgia",
+        "display_ea": "华文宋体",
+        "body_latin": "Georgia",
+        "body_ea": "宋体",
+        "mono": "Consolas"
+      },
+      "fonts_bundled": [
+        "Instrument Serif",
+        "IBM Plex Mono"
+      ],
+      "fonts_html": {
+        "display": "Bodoni Moda",
+        "sans": "Manrope",
+        "style": "heavy Bodoni-style display serif paired with a wide geometric sans for chrome and body"
+      },
+      "type": {
+        "display_pt": 56,
+        "h1_pt": 36,
+        "lead_pt": 24,
+        "body_pt": 15,
+        "small_pt": 12,
+        "label_pt": 8.5,
+        "display_ratio": 3.73,
+        "display_lh_pct": 78333,
+        "body_lh_pct": 120833,
+        "display_lh_em": 0.94,
+        "body_lh_em": 1.45,
+        "tracking_display_pt": -1.12,
+        "tracking_display_cjk_pt": 0.0,
+        "tracking_label_pt": 1.53
+      },
+      "usage": {
+        "best_for": "Anything that should feel like the front of a serious magazine, including but not limited to leadership readouts, planning-office reviews, and strategy briefings. The double-rule masthead ornament gives it editorial gravitas without making it stiff — also a great unexpected pick for product launches or research recaps that want to feel considered rather than corporate.",
+        "avoid_for": "Contexts that need to read as quiet, neutral, or institutionally restrained — the emerald field is too saturated to disappear into the background.",
+        "note": "金融科技、增长报告。深海军蓝字 + 薄荷绿块，数字密度高的页面很扛。"
+      },
+      "notable_accents": [],
+      "ppt_safe": true,
+      "source": "beautiful-html-templates/templates/emerald-editorial/template.json"
+    },
+    {
+      "slug": "studio",
+      "name": "Studio",
+      "name_zh": "黑黄车间",
+      "register": "poster",
+      "density": "medium",
+      "formality": "medium",
+      "mood": [
+        "electric",
+        "bold",
+        "graphic",
+        "design-led"
+      ],
+      "palette": {
+        "paper": "#1c1c1c",
+        "ink": "#f5d200",
+        "accent": "#f5d200",
+        "accent2": "#F5F5F5",
+        "rule": "#3A3A38"
+      },
+      "derived_roles": [
+        "accent2",
+        "rule"
+      ],
+      "accent_role": "text",
+      "accent_text_color": "#FFFFFF",
+      "contrast": {
+        "ink_on_paper": 11.44,
+        "accent_on_paper": 11.44,
+        "ink_on_accent": 1.0,
+        "white_on_accent": 1.49
+      },
+      "font_preset": "poster-condensed",
+      "fonts": {
+        "display_latin": "Bebas Neue",
+        "display_ea": "微软雅黑",
+        "body_latin": "Barlow",
+        "body_ea": "微软雅黑",
+        "mono": "IBM Plex Mono"
+      },
+      "fonts_fallback": {
+        "display_latin": "Arial Narrow",
+        "display_ea": "微软雅黑",
+        "body_latin": "Segoe UI",
+        "body_ea": "微软雅黑",
+        "mono": "Consolas"
+      },
+      "fonts_bundled": [
+        "Bebas Neue",
+        "Barlow",
+        "IBM Plex Mono"
+      ],
+      "fonts_html": {
+        "display": "Barlow",
+        "body": "Barlow",
+        "mono": "IBM Plex Mono",
+        "cn": "Noto Sans SC",
+        "style": "broadcast-grotesk display + technical mono captions; ultra-high-contrast typographic system"
+      },
+      "type": {
+        "display_pt": 72,
+        "h1_pt": 36,
+        "lead_pt": 24,
+        "body_pt": 15,
+        "small_pt": 12,
+        "label_pt": 8.5,
+        "display_ratio": 4.8,
+        "display_lh_pct": 73333,
+        "body_lh_pct": 116667,
+        "display_lh_em": 0.88,
+        "body_lh_em": 1.4,
+        "tracking_display_pt": -1.44,
+        "tracking_display_cjk_pt": 0.0,
+        "tracking_label_pt": 1.7
+      },
+      "usage": {
+        "best_for": "Anything that should feel electric and design-led: studio credentials, creative agency pitches, brand showcases, art-direction reviews, fashion / sneaker brand work. Also a striking unexpected choice for tech, research, or business decks where the speaker wants the deck to *be* a brand statement.",
+        "avoid_for": "Contexts that should feel quiet or institutional — the black-and-electric-yellow palette is the loudest in the library.",
+        "note": "工作室介绍、硬核产品、演出海报。黑底黄字，全篇只有这一个颜色。"
+      },
+      "notable_accents": [],
+      "ppt_safe": true,
+      "source": "beautiful-html-templates/templates/studio/template.json"
+    },
+    {
+      "slug": "grove",
+      "name": "Grove",
+      "name_zh": "深林砖红",
+      "register": "editorial-dark",
+      "density": "medium",
+      "formality": "medium-high",
+      "mood": [
+        "organic",
+        "considered",
+        "warm",
+        "literary"
+      ],
+      "palette": {
+        "paper": "#192b1b",
+        "ink": "#d4cfbf",
+        "accent": "#c8524a",
+        "accent2": "#e8e4d6",
+        "rule": "#2E4430"
+      },
+      "derived_roles": [
+        "rule"
+      ],
+      "accent_role": "text",
+      "accent_text_color": "#FFFFFF",
+      "contrast": {
+        "ink_on_paper": 9.61,
+        "accent_on_paper": 3.39,
+        "ink_on_accent": 2.83,
+        "white_on_accent": 4.41
+      },
+      "font_preset": "serif-editorial",
+      "fonts": {
+        "display_latin": "Instrument Serif",
+        "display_ea": "华文宋体",
+        "body_latin": "Georgia",
+        "body_ea": "宋体",
+        "mono": "IBM Plex Mono"
+      },
+      "fonts_fallback": {
+        "display_latin": "Georgia",
+        "display_ea": "华文宋体",
+        "body_latin": "Georgia",
+        "body_ea": "宋体",
+        "mono": "Consolas"
+      },
+      "fonts_bundled": [
+        "Instrument Serif",
+        "IBM Plex Mono"
+      ],
+      "fonts_html": {
+        "display": "Playfair Display",
+        "body": "Jost",
+        "mono": "JetBrains Mono",
+        "serif_cn": "Noto Serif SC",
+        "sans_cn": "Noto Sans SC",
+        "style": "transitional serif headlines + clean geometric sans body + technical mono; full Chinese serif/sans support"
+      },
+      "type": {
+        "display_pt": 54,
+        "h1_pt": 36,
+        "lead_pt": 24,
+        "body_pt": 15,
+        "small_pt": 12,
+        "label_pt": 8.5,
+        "display_ratio": 3.6,
+        "display_lh_pct": 79167,
+        "body_lh_pct": 125000,
+        "display_lh_em": 0.95,
+        "body_lh_em": 1.5,
+        "tracking_display_pt": -1.08,
+        "tracking_display_cjk_pt": 0.0,
+        "tracking_label_pt": 1.53
+      },
+      "usage": {
+        "best_for": "Anything that should feel organic, considered, and grown-up: sustainability and wellness brands, outdoor / nature products, wineries and restaurants, literary or arts decks, advisory deliverables, bilingual EN/CN reports. Also a calm, distinctive choice for tech, research, or business decks that want patience over urgency.",
+        "avoid_for": "Decks that need neon energy or rapid-fire pop — the forest-green canvas and Playfair serif commit to a slow, classical voice.",
+        "note": "深度研究、年度总结、纪录片式叙事。暗林绿几乎接近黑。"
+      },
+      "notable_accents": [],
+      "ppt_safe": true,
+      "source": "beautiful-html-templates/templates/grove/template.json"
+    },
+    {
+      "slug": "sakura-chroma",
+      "name": "Sakura Chroma",
+      "name_zh": "木色五色",
+      "register": "cultural",
+      "density": "medium",
+      "formality": "low",
+      "mood": [
+        "retro",
+        "playful",
+        "kawaii-tech",
+        "warm"
+      ],
+      "palette": {
+        "paper": "#F1E6CB",
+        "ink": "#3A2516",
+        "accent": "#E5392A",
+        "accent2": "#3F8BC4",
+        "rule": "#D6C7A8"
+      },
+      "derived_roles": [
+        "rule"
+      ],
+      "accent_role": "block",
+      "accent_text_color": "#FFFFFF",
+      "contrast": {
+        "ink_on_paper": 11.62,
+        "accent_on_paper": 3.42,
+        "ink_on_accent": 3.4,
+        "white_on_accent": 4.24
+      },
+      "font_preset": "condensed",
+      "fonts": {
+        "display_latin": "Barlow Condensed",
+        "display_ea": "微软雅黑",
+        "body_latin": "Barlow",
+        "body_ea": "等线 Light",
+        "mono": "IBM Plex Mono"
+      },
+      "fonts_fallback": {
+        "display_latin": "Arial Narrow",
+        "display_ea": "微软雅黑",
+        "body_latin": "Segoe UI",
+        "body_ea": "等线 Light",
+        "mono": "Consolas"
+      },
+      "fonts_bundled": [
+        "Barlow Condensed",
+        "Barlow",
+        "IBM Plex Mono"
+      ],
+      "fonts_html": {
+        "display": "Big Shoulders Display",
+        "body": "Albert Sans",
+        "mono": "JetBrains Mono",
+        "jp": "Noto Sans JP",
+        "style": "condensed black grotesk display in red and brown for hero type, paired with a clean modern sans for body and a mono for spec-sheet listings; Japanese kanji used as decorative micro-type"
+      },
+      "type": {
+        "display_pt": 54,
+        "h1_pt": 36,
+        "lead_pt": 24,
+        "body_pt": 15,
+        "small_pt": 12,
+        "label_pt": 8.5,
+        "display_ratio": 3.6,
+        "display_lh_pct": 79167,
+        "body_lh_pct": 120833,
+        "display_lh_em": 0.95,
+        "body_lh_em": 1.45,
+        "tracking_display_pt": -1.08,
+        "tracking_display_cjk_pt": 0.0,
+        "tracking_label_pt": 1.36
+      },
+      "usage": {
+        "best_for": "Anything that should feel like a vintage Japanese cassette package or a TDK / Sony / Sakura Color product catalogue: indie hardware brand decks, music-label release schedules, analog studio retrospectives, zine and magazine pitches, kawaii-tech product launches, creative-studio annual reports. Equally good for any deck wanting bold colour, condensed display type, and a tactile printed-product personality.",
+        "avoid_for": "Decks that need restrained, corporate, or quiet typography — the bold condensed lockups, ribbon stripes, and primary-colour palette are intentionally loud and product-page-y.",
+        "note": "节庆、市集、儿童内容。上游给了 5 个彩色，一页最多挑 2 个。"
+      },
+      "notable_accents": [
+        "#E54489",
+        "#F09131",
+        "#F0BC2A",
+        "#3D9F47"
+      ],
+      "ppt_safe": true,
+      "source": "beautiful-html-templates/templates/sakura-chroma/template.json"
+    },
+    {
+      "slug": "8-bit-orbit",
+      "name": "8-Bit Orbit",
+      "register": "unsafe-for-pptx",
+      "ppt_safe": false,
+      "ppt_limit": "像素字体 + 发光，pptx 无外发光，需要位图",
+      "source": "beautiful-html-templates/templates/8-bit-orbit/template.json"
+    },
+    {
+      "slug": "block-frame",
+      "name": "BlockFrame",
+      "register": "unsafe-for-pptx",
+      "ppt_safe": false,
+      "ppt_limit": "粗色边框 + 叠印，需要负间距和 mix-blend-mode",
+      "source": "beautiful-html-templates/templates/block-frame/template.json"
+    },
+    {
+      "slug": "blue-professional",
+      "name": "Blue Professional",
+      "register": "unsafe-for-pptx",
+      "ppt_safe": false,
+      "ppt_limit": "可用但 ERP 蓝 #1E2BFA 与 Office 默认蓝太近，易混",
+      "source": "beautiful-html-templates/templates/blue-professional/template.json"
+    },
+    {
+      "slug": "capsule",
+      "name": "Capsule",
+      "register": "unsafe-for-pptx",
+      "ppt_safe": false,
+      "ppt_limit": "胶囊圆角 + 多色块，需手绘 SVG",
+      "source": "beautiful-html-templates/templates/capsule/template.json"
+    },
+    {
+      "slug": "cartesian",
+      "name": "Cartesian",
+      "register": "unsafe-for-pptx",
+      "ppt_safe": false,
+      "ppt_limit": "极细网格与坐标轴，线宽低于 0.75pt 打印会消失",
+      "source": "beautiful-html-templates/templates/cartesian/template.json"
+    },
+    {
+      "slug": "creative-mode",
+      "name": "Creative Mode",
+      "register": "unsafe-for-pptx",
+      "ppt_safe": false,
+      "ppt_limit": "多色叠印与旋转贴纸",
+      "source": "beautiful-html-templates/templates/creative-mode/template.json"
+    },
+    {
+      "slug": "daisy-days",
+      "name": "Daisy Days",
+      "register": "unsafe-for-pptx",
+      "ppt_safe": false,
+      "ppt_limit": "圆润贴纸风，依赖位图装饰",
+      "source": "beautiful-html-templates/templates/daisy-days/template.json"
+    },
+    {
+      "slug": "peoples-platform",
+      "name": "People's Platform (Block & Bold)",
+      "register": "unsafe-for-pptx",
+      "ppt_safe": false,
+      "ppt_limit": "粗描边字 + 拼贴",
+      "source": "beautiful-html-templates/templates/peoples-platform/template.json"
+    },
+    {
+      "slug": "pin-and-paper",
+      "name": "Pin & Paper",
+      "register": "unsafe-for-pptx",
+      "ppt_safe": false,
+      "ppt_limit": "手写体 + 图钉位图",
+      "source": "beautiful-html-templates/templates/pin-and-paper/template.json"
+    },
+    {
+      "slug": "raw-grid",
+      "name": "Raw Grid",
+      "register": "unsafe-for-pptx",
+      "ppt_safe": false,
+      "ppt_limit": "1px 网格线全铺，pptx 会有对齐残影",
+      "source": "beautiful-html-templates/templates/raw-grid/template.json"
+    },
+    {
+      "slug": "retro-windows",
+      "name": "Retro Windows",
+      "register": "unsafe-for-pptx",
+      "ppt_safe": false,
+      "ppt_limit": "Win98 窗口控件，纯 CSS 边框模拟",
+      "source": "beautiful-html-templates/templates/retro-windows/template.json"
+    },
+    {
+      "slug": "retro-zine",
+      "name": "Retro Zine",
+      "register": "unsafe-for-pptx",
+      "ppt_safe": false,
+      "ppt_limit": "网点/撕纸纹理，需位图底",
+      "source": "beautiful-html-templates/templates/retro-zine/template.json"
+    },
+    {
+      "slug": "scatterbrain",
+      "name": "Scatterbrain",
+      "register": "unsafe-for-pptx",
+      "ppt_safe": false,
+      "ppt_limit": "随机散落旋转，pptx 无法保证布局稳定",
+      "source": "beautiful-html-templates/templates/scatterbrain/template.json"
+    },
+    {
+      "slug": "stencil-tablet",
+      "name": "Stencil & Tablet",
+      "register": "unsafe-for-pptx",
+      "ppt_safe": false,
+      "ppt_limit": "模板喷漆断开效果，需要位图字",
+      "source": "beautiful-html-templates/templates/stencil-tablet/template.json"
+    }
+  ]
+}
