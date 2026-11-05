@@ -63,6 +63,19 @@ build_slide(prs, theme_json, "kpi-grid", {"kicker": ..., "title": ..., "kpis": [
 
 每个版式要哪些字段，见 [`skill/references/layouts.md`](skill/references/layouts.md)。
 
+## 作为 agent skill 使用
+
+`skill/` 就是一份可直接安装的技能包：`SKILL.md` 是入口（选工具 → 五步流程 → 22 条坑 → 验收清单），
+`references/` 是按需展开的长文档，`scripts/` 里全是能直接跑的命令。
+
+```bash
+# 装进 DSH / Claude 等支持 skill 目录的 agent
+cp -r skill ~/.dsh/skills/generating-pptx-decks        # Windows: %USERPROFILE%\.dsh\skills\...
+```
+
+不装也能用：`python skill/scripts/preview_layouts.py ...` 就是全部能力，SKILL.md 只是把
+「什么时候该用哪条命令、哪些坑必须避开」写清楚。
+
 ## 两条轴
 
 ### 主题（14 套，来自 34 个 HTML 模板）
