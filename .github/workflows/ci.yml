@@ -27,11 +27,6 @@ jobs:
       - name: 语法检查
         run: python -m compileall -q skill/scripts tasks.py
 
-      - name: 内嵌 genppt = 上游树 + 补丁（反向能打上说明状态一致）
-        run: |
-          git apply --check -R --directory=vendor/genppt -p1 skill/scripts/genppt-effects.patch
-          python tasks.py genppt check
-
       - name: 14 套主题 × 13 个版式全部 lint（error 必须为 0）
         run: python tasks.py verify --out-dir /tmp/verify
 
@@ -39,6 +34,17 @@ jobs:
         run: |
           python tasks.py sheet --out /tmp/sheet.pptx
           python tasks.py lint /tmp/sheet.pptx
+
+      - name: 渲染器缺失时给出可操作的提示（别抛 traceback）
+        run: |
+          set +e
+          out=$(python tasks.py render /tmp/sheet.pptx --engine soffice --out-dir /tmp/nope 2>&1)
+          rc=$?
+          echo "$out"
+          case "$rc:$out" in
+            2:*"找不到可用的渲染器"*|0:*"PNG"*|2:*"输出目录已存在"*) echo "OK" ;;
+            *) echo "渲染失败路径的输出不对（rc=$rc）"; exit 1 ;;
+          esac
 
       - name: 打包产物（失败时人工看）
         if: always()
@@ -49,18 +55,3 @@ jobs:
             /tmp/sheet.pptx
             /tmp/verify/**/*.pptx
           if-no-files-found: ignore
-
-  go-writer:
-    name: go writer（含补丁）
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: vendor/genppt
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
-        with:
-          go-version: "1.24"
-      - run: go build ./...
-      - run: go vet ./...
-      - run: go test ./...

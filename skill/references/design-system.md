@@ -30,10 +30,10 @@
 | 代码 / 等宽 | `Consolas`、`Cascadia Mono` |
 
 **中文必须同时设 `a:latin` 和 `a:ea`。** python-pptx 的 `font.name` 只写 `a:latin`，
-结果是中文掉回默认字体、英文却是你要的那个，一行里两种字形。genppt 会同时写两个。
+结果是中文掉回默认字体、英文却是你要的那个，一行里两种字形。所以要同时写 `a:latin` 和 `a:ea`。
 
 字距：`letter-spacing: 0.12em` 在 8.5pt 上等于 **1.02 pt**——
-genppt 写 `CharSpacing: 1.3`（单位磅），手写 OOXML 写 `rPr/@spc="130"`（单位 1/100 磅）。
+OOXML 里写 `rPr/@spc="130"`（单位 1/100 磅，即 1.3 磅）。
 
 ## 2. 字号阶
 
@@ -55,8 +55,8 @@ genppt 写 `CharSpacing: 1.3`（单位磅），手写 OOXML 写 `rPr/@spc="130"`
 ## 3. 字距与行距
 
 - Display 的 `letter-spacing: -0.02em`：小字号设负值会糊，54pt 以上可以不设。
-- Label 的 `+0.12 ~ 0.18em`：8.5pt 字配 `CharSpacing: 1.3`（genppt 单位是磅）。
-- 行高：**genppt 的 `LineSpacing` 是百分比**，`1.0` = 100%、`0.95` = 95%；
+- Label 的 `+0.12 ~ 0.18em`：8.5pt 字配 `spc="130"`（1.3 磅）。
+- 行高：**`a:spcPct/@val` 是 1/1000 百分比**，`100000` = 100%、`95000` = 95%；
   但 100% 等于 **1.2 倍字号**（不是 1.0 倍）。想要 1.5 倍行高要写 `125`。
   完整换算表见 `chinese-typography.md` §2。
   手写 OOXML 时对应 `a:lnSpc/a:spcPct val="95000"`（千分之一百分比）。
@@ -114,7 +114,7 @@ rule    D8D0BE   分隔线
 | [html-ppt-skill](https://github.com/lewislulu/html-ppt-skill) | 36 个主题 CSS、24 个 JS 特效 | 抄 CSS 变量里的色板和字号 |
 | [beautiful-html-templates](https://github.com/zarazhangrui/beautiful-html-templates) | 34 套，每套 `template.html` + `design.md` + `template.json` | 读 `design.md` 拿 tokens 和构图说明 |
 
-**不要试图把这些 HTML 直接喂给生成器。** genppt 的 HTML 解析器只认 inline-style 白名单、
+**不要试图把这些 HTML 直接喂给生成器。** HTML→pptx 的解析器普遍只认 inline-style 白名单、
 单列 yPos 流式布局、每框一个字号，不吃 CSS grid、渐变、绝对定位。它们是**设计资料**，不是输入。
 
 正确的用法：挖 tokens（字号阶、色板、字距、行高）→ 换算成 pt → 用自己的绝对坐标 API 重画。

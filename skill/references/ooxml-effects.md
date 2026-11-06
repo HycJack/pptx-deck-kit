@@ -1,6 +1,6 @@
 # OOXML 效果与动画：生成器写不出来的那一层
 
-python-pptx 与 genppt 都只覆盖了 OOXML 的一小半。下面每个片段都是**实测通过**的
+python-pptx 只覆盖了 OOXML 的一小半。下面每个片段都是**实测通过**的
 （PowerPoint 回读一致，或源码已内置），可以直接拼进 slideN.xml 或改写进生成器。
 
 ## 1. 形状的四个特效

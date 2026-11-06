@@ -1,6 +1,6 @@
 ---
 name: generating-pptx-decks
-description: Use when asked to produce a .pptx deck (演示文稿 / 幻灯片 / PPT / deck) from scratch or from existing content, or when a generated deck "looks like a Word document", animations don't play, or a deck must be verified rather than merely opened. Covers choosing a generator (Go genppt, python-pptx, raw OOXML), design quality (type scale, palette, grid, px→pt), two orthogonal axes — 14 themes derived from 34 HTML templates (assets/themes.json + OFL fonts) and 13 structurally different page layouts (column ratios, full-bleed, huge numerals, tables, timelines), Chinese/CJK typography (character width = font size, line-height percentage conversion, 避头尾, CJK-Latin spacing, a:ea), effects (gradient, shadow, z-order, no-fill borders), entrance animations and slide transitions (p:timing), and MP4 export via PowerPoint COM.
+description: Use when asked to produce a .pptx deck (演示文稿 / 幻灯片 / PPT / deck) from scratch or from existing content, or when a generated deck "looks like a Word document", animations don't play, or a deck must be verified rather than merely opened. Covers choosing a generator (python-pptx, raw OOXML), design quality (type scale, palette, grid, px→pt), two orthogonal axes — 14 themes derived from 34 HTML templates (assets/themes.json + OFL fonts) and 13 structurally different page layouts (column ratios, full-bleed, huge numerals, tables, timelines), Chinese/CJK typography (character width = font size, line-height percentage conversion, 避头尾, CJK-Latin spacing, a:ea), effects (gradient, shadow, z-order, no-fill borders), entrance animations and slide transitions (p:timing), and MP4 export via PowerPoint COM.
 ---
 
 # 生成演示文稿
@@ -17,27 +17,22 @@ description: Use when asked to produce a .pptx deck (演示文稿 / 幻灯片 / 
 
 | 你要的 | 用什么 | 代价 |
 |---|---|---|
-| 内容已经是 HTML / Markdown，先出个草稿 | genppt `FromHTMLFile` | 只有矩形、单字号、单列流式 → **出来像文档** |
-| 要有设计感（自由坐标、色块、层次） | genppt `AddText/AddShape` 绝对坐标 API | 得自己算坐标 |
-| 要读现成模板 / 母版 | **python-pptx** | genppt 是只写的，读不了 |
-| 要渐变 / 阴影 / 透明度 / 图层 | genppt 打补丁（`scripts/genppt-effects.patch`）或 python-pptx + 手写 oxml | 见 `references/ooxml-effects.md` |
+| 内容已经是 HTML / Markdown，先出个草稿 | `pandoc` 或任意 HTML→pptx 生成器 | 只有矩形、单字号、单列流式 → **出来像文档** |
+| 要有设计感（自由坐标、色块、层次） | **python-pptx** 绝对坐标（`scripts/layouts.py` 可直接用） | 坐标得自己算 |
+| 要读现成模板 / 母版、要改别人的文件 | **python-pptx** `Presentation(path)` | 只有它有读取+就地修改 |
+| 要渐变 / 阴影 / 透明度 / 图层 | python-pptx + 手写 oxml | 见 `references/ooxml-effects.md` |
 | 要动画 | **任何**生成器产物 + `scripts/add_anim.py` 后处理 | 不依赖 Office |
 | 要 mp4 | `scripts/pptx2video.ps1`（PowerPoint COM） | 必须装 PowerPoint |
 
 关键判断：**如果只有「HTML 转 pptx」这一条路，不要指望设计感。**
 H 流式入口每块只有一种字号、只能画矩形，yPos 递增排布，天然是文档。要设计稿就得用绝对坐标。
 
-**genppt 是 Go 库，不是 pip 包。** 环境里没有 Go、或者没 clone 下来，就别硬上——
-用 python-pptx 走**完全相同的五步流程**（设计系统、栅格、字号阶一模一样，
-只是写特效时多几行手写 oxml，见 `references/ooxml-effects.md`）。
-要用 genppt：
+**默认只用 python-pptx**：它是唯一"读写都能改"的层，也是本仓库唯一硬依赖。
+特效（渐变/阴影/动画/切换）要手写 oxml，片段见 `references/ooxml-effects.md`；
+写错 PowerPoint 不报错，只丢弃，所以必须回读验证（见 §4）。
 
-```
-git clone https://github.com/CoolBanHub/genppt
-# go.mod:
-#   require github.com/CoolBanHub/genppt v0.0.0
-#   replace github.com/CoolBanHub/genppt => ../genppt
-```
+要在 Go 里生成（无 Python 运行时的服务端）才需要考虑别的写入器；为什么不自己写一个
+python-pptx 那样的 Go 库，见仓库的 `docs/go-pptx-library.md`。
 
 ## 2. 五步流程
 
@@ -69,9 +64,10 @@ git clone https://github.com/CoolBanHub/genppt
 5. **文字渐变静默失效。** `a:gradFill` 必须排在 `a:latin` **之前**，`append` 到末尾会被忽略。
 6. **拿 LibreOffice 验动画。** 它不解析 `p:timing`，也不渲染文字渐变。动画/文字效果只能用 PowerPoint 验。
 7. **`p14:morph` 写进去没用。** PowerPoint 会丢弃该节点，`EntryEffect` 也没有对应值。别写。
-8. **单位记错。** genppt：`CharSpacing` 是磅，`LineSpacing` 是百分比——
-   但 **100% = 1.2 倍字号**，想要 1.5 倍行高要写 `125`。写 `150` 会得到 1.8 倍，
-   整块文字松垮。换算见 `references/chinese-typography.md` §2。
+8. **单位记错。** OOXML 里同一个"间距"有三套单位：`a:rPr/@spc`（字距，1/100 磅）、
+   `a:rPr/@sz`（字号，1/100 磅）、`a:spcPct/@val`（行距，1/1000 百分比）。而且行距
+   **100% = 1.2 倍字号**，想要 1.5 倍行高要写 `125`；写 `150` 会得到 1.8 倍，整块文字松垮。
+   换算见 `references/chinese-typography.md` §2。
 9. **`SaveCopyAs` 存成 .ppt。** 第二个参数必须传 `24`（OOXML），传 `1` 会得到二进制 ppt。
 10. **python-pptx 的形状自带 `<p:style>`。** 里面 `lnRef` 指向主题色、`effectRef` 带主题阴影，
     只加 `<a:ln><a:noFill/></a:ln>` 仍留着主题描边和阴影的壳 → 把整个 `<p:style>` 删掉。
@@ -101,7 +97,7 @@ git clone https://github.com/CoolBanHub/genppt
     是字没了。14 套主题里 5 套的强调色在白纸上是 1.0–1.8。规则：文字走 `accent_text`
     （对比不足自动退回墨色），细线走 `accent_mark`，反色页走 `on_ink`，
     色块上的字用 `tint_pair()` 连块带字一起定。`lint_pptx.py` 的 R8 会按**局部底色**查这一条。
-    它是读回 pptx 真实 XML 查的，所以也查得了别人的产物（genppt 官方 demo 就被抓出白字压
+    它是读回 pptx 真实 XML 查的，所以也查得了别人的产物（某 Go 库的官方 demo 就被抓出白字压
     `#ED7D31`/`#70AD47` 只有 2.77/2.71）；表格按单元格算几何和底色。
 19. **强调色换到底色上要现算，别复用主题级结论。** `accent_text` 只对纸色验过；表格的斑马行
     比纸色暗一档，grove 的砖红压上去只剩 2.85（R8 报 error）。凡是非纸色底一律走
@@ -169,7 +165,6 @@ XML 片段（渐变/阴影/无边框/时间轴/切换） → `references/ooxml-e
 | `scripts/add_anim.py` | 给任意 pptx 批量加切换 + 错峰入场（`--effect fade --stagger 160`） |
 | `scripts/pptx_anim.py` | 上面的库，`Animator(slide).entrance(shape, "fly", delay=200).build()` |
 | `scripts/pptx2video.ps1` | PowerPoint COM 导出 mp4（可写打开 + 异步轮询 + finally 清理） |
-| `scripts/genppt-effects.patch` | 给上游 genppt 加渐变/阴影/图层/动画的补丁（`git apply`） |
 
 `add_anim.py` 会**替换**页面上已有的时间轴。手工调过的动画不要再过它。
 

@@ -2,7 +2,7 @@
 """
 通用后处理：给任意 pptx 的每一页加切换 + 入场动画。
 
-它是「生成器做不到」的逃生口——genppt 也好、别的库也好，产物都是标准 pptx，
+它是「生成器做不到」的逃生口——不管用什么库生成，产物都是标准 pptx，
 只要在 zip 里的 slideN.xml 追加 <p:transition> 与 <p:timing> 就能动起来。
 
   python tools/add_anim.py in.pptx out.pptx --effect fade --stagger 160

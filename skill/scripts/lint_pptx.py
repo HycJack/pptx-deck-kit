@@ -32,7 +32,7 @@ def frames(shape):
     """可读的文本容器：[(TextFrame, 局部底色 or None, 几何 or None)]。
 
     GraphicFrame（表格、图表）**没有** `.text_frame`——`has_text_frame` 是 False，直接取就
-    AttributeError（genppt 的 AddTable 产物会踩到；本仓库的 `table` 版式自己画文本框因此没暴露）。
+    AttributeError（`add_table` 的产物会踩到；本仓库的 `table` 版式自己画文本框因此没暴露）。
     表格按单元格展开，并且真的算单元格几何：否则几行 cell 拼成一段文字，R2 会误报成溢出。
     """
     try:
@@ -158,7 +158,7 @@ def slide_bg(slide):
     """幻灯片背景色（`<p:bg>`）。拿不到就当白底。
 
     自己这套版式永远是「满幅色块打底」，所以以前只在形状填充里找；换成别人的产物
-    （比如 genppt 的 `SetBackground`）就会拿白底去比白字，误报 1.00。
+    （比如用 COM / 另一个库设置过 `SetBackground`）就会拿白底去比白字，误报 1.00。
     """
     try:
         f = slide.background.fill

@@ -25,10 +25,10 @@ both as a CLI and as an agent skill.
 
 所以这里把三件事拆开，各自可替换：
 
-1. **写文件**：Go 的 [genppt](https://github.com/CoolBanHub/genppt)（内嵌并打了补丁，见下）
+1. **写文件**：python-pptx（唯一硬依赖）
 2. **做设计**：`skill/scripts/layouts.py` 的 13 个版式 + `skill/assets/themes.json` 的 14 套主题，
    几何全部由 12 栏栅格和字号阶推导，不写死坐标
-3. **验收**：`lint_pptx.py`（8 条规则）+ LibreOffice 渲染逐页看图
+3. **验收**：`lint_pptx.py`（8 条规则，读回真实 XML）+ 可选渲染逐页看图
 
 ## 30 秒上手
 
@@ -161,7 +161,7 @@ cp -r skill ~/.dsh/skills/generating-pptx-decks        # Windows: %USERPROFILE%\
 | R7 | 中文段落 `algn="just"`（实测不拉伸，纯白设） |
 | R8 | 文字色 vs **局部底色**对比度 <3.0（表头那种「纸色字压墨色块」必须查局部，查整页会误报 1.00） |
 
-linter 是读回 pptx 的真实 XML 查的，跟哪个写入器生成无关——拿 genppt 自己的官方 demo 试，
+linter 是读回 pptx 的真实 XML 查的，跟哪个写入器生成无关——拿第三方库官方 demo 试，
 它照样报出白字压 `#ED7D31` / `#70AD47` 只有 **2.77 / 2.71**（PowerPoint 里就是糊的）。
 
 全套验收一条命令（CI 跑的就是这个）：
@@ -180,7 +180,7 @@ $env:RENDER_CLI = "...\libreoffice-kit\lib\cli.js"  # 或指定 libreoffice-kit�
 python tasks.py render out.pptx --engine soffice      # 或机器上装了 LibreOffice
 ```
 
-- `lint` / `preview` / `verify` / `genppt` **全都不需要渲染器**，CI 里也没装 LibreOffice
+- `lint` / `preview` / `verify` **全都不需要渲染器**，CI 里也没装 LibreOffice
 - `--engine com` 用 `cscript` + 临时 `.vbs` 驱动 PowerPoint，绕开组策略 AllSigned 对 `.ps1` 的拦截
 - `--engine soffice` 只能出第一页（`--convert-to png` 不支持多页），当兜底
 - 输出目录必须不存在；拿到的 PNG 逐页 `read_image`，不要凭坐标脑补
@@ -208,13 +208,12 @@ skill/                     ← 可以直接装进 agent 的技能包（SKILL.md 
     pptx_anim.py          动画库（p:timing）
     pptx2video.ps1        PowerPoint COM 导出 mp4
     install_fonts.py      装自带 OFL 字体（--check / --list / --dry-run；不受 .ps1 执行策略限制）
-    install_fonts.ps1     同一个功能的 PowerShell 版
-    genppt-effects.patch  给 genppt 加渐变/阴影/图层/动画的补丁
+    install_fonts.ps1     同一个功能的 PowerShell 版（组策略 AllSigned 的机器上跑不了，用 .py）
   assets/
     themes.json            14 套主题注册表
     fonts/                 6 个 OFL 字体 + 许可证
-tasks.py                   ← 统一入口：list / preview / sheet / lint / render / fonts / verify / genppt
-vendor/genppt/             ← 上游 61df963 原始树 + 已打补丁（MIT，见 NOTICE.md）
+tasks.py                   ← 统一入口：list / preview / sheet / lint / render / fonts / verify
+docs/go-pptx-library.md    ← 为什么不自己写 Go 库（评估留档）
 examples/                  ← 4 个成品 pptx + 5 张预览图
 LICENSE / NOTICE.md        代码 MIT；第三方与字体授权
 requirements.txt           唯一硬依赖：python-pptx
@@ -240,21 +239,6 @@ PowerShell 版 `skill/scripts/install_fonts.ps1` 功能等价。**如果你的�
 PowerPoint 文件里只存字体名，**不存字形**——`EmbedTrueTypeFonts` 是 Word 的属性，PowerPoint COM 没有这个开关，
 所以「换机器不掉版」只能靠降级链。
 
-## genppt 为什么内嵌而不是 submodule
-
-- 这个仓库要能 clone 完直接跑（Go 只用来重写 XML，不装也能用 Python 那条路）
-- `vendor/genppt/` 里是上游 `61df963` 的**原始 39 个文件 + 已打上补丁**，仓库里看到的就是能编译的状态
-- 补丁单独留档：`skill/scripts/genppt-effects.patch`（渐变/阴影/透明度/图层/动画），
-  上游升级时换原始树再重放，别手改 `vendor/`
-
-  ```bash
-  python tasks.py genppt check       # 状态 + 补丁动哪些文件（已应用时 exit 0）
-  python tasks.py genppt revert      # 回退，换成上游新版本
-  python tasks.py genppt apply --go  # 重放补丁 + go build/vet/test
-  ```
-
-- 上游是 MIT，内嵌合法，详见 [NOTICE.md](NOTICE.md)（含 pin 的 commit 与逐文件改动说明）
-
 ## 已知边界
 
 - 多栏版式别用 10×5.625 画布，栏宽会挤到 3in 以下；默认 13.333×7.5
@@ -262,8 +246,10 @@ PowerPoint 文件里只存字体名，**不存字形**——`EmbedTrueTypeFonts`
   `roadmap` / `mindmap` / `code`——它们依赖真实图片或数据源，做成空版式只是占位框
 - 动画/切换只能通过 PowerPoint COM 回读验证，纯 Python 校验不了
 - `themes.json` 里 `ppt_safe:false` 的 14 套是真不能用（渐变底、图片依赖），不是没写完
+- 纯 Python 的硬边界：渲染验证要外部程序（LO 或 Office），字体不随文件走，SmartArt/WordArt/3D
+  没有 API——详见 [docs/go-pptx-library.md](docs/go-pptx-library.md) §4
 
 ## License
 
-代码 MIT（见 [LICENSE](LICENSE)）。第三方：genppt（MIT）、6 个字体（OFL 1.1，分发必须带
-`*-OFL.txt`）、主题派生自 beautiful-html-templates（见 [NOTICE.md](NOTICE.md)）。
+代码 MIT（见 [LICENSE](LICENSE)）。第三方：6 个字体（OFL 1.1，分发必须带 `*-OFL.txt`）、
+主题派生自 beautiful-html-templates（见 [NOTICE.md](NOTICE.md)）。

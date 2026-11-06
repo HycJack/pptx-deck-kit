@@ -82,87 +82,6 @@ def verify(only: str, out_dir: str, keep: bool) -> int:
     return 0
 
 
-def genppt(action: str, patch: str, verify: bool) -> int:
-    """内嵌的 genppt = 上游 61df963 + skill/scripts/genppt-effects.patch。
-
-    上游升级时：先换 vendor/genppt 成新的原始树，再 `python tasks.py genppt --apply`；
-    补丁打不上（context 冲突）就得重新裁一遍，别手改 vendor——手改就再也传不回上游了。
-    """
-    patch_path = Path(patch) if patch else SCRIPTS / "genppt-effects.patch"
-    if not patch_path.exists():
-        print(f"找不到补丁: {patch_path}", file=sys.stderr)
-        return 2
-
-    files = [ln.split(" b/", 1)[1] for ln in patch_path.read_text(encoding="utf-8").splitlines()
-             if ln.startswith("diff --git ")]
-    base = ["git", "apply", "-p1", "--directory=vendor/genppt"]
-
-    def gitapply(extra: list[str], quiet: bool = False) -> int:
-        r = subprocess.run([*base, *extra, str(patch_path)], cwd=ROOT,
-                           capture_output=True, text=True, encoding="utf-8", errors="replace")
-        if r.returncode != 0 and r.stderr.strip() and not quiet:
-            print(r.stderr.strip(), file=sys.stderr)
-        return r.returncode
-
-    applied = gitapply(["--check", "-R"], quiet=True) == 0
-    can_apply = gitapply(["--check"], quiet=True) == 0
-
-    if action == "check":
-        print(f"补丁: {patch_path.name}  ({len(files)} 个文件)")
-        for f in files:
-            print(f"  {f}")
-        state = "已应用" if applied else ("可应用" if can_apply else "打不上（上下文冲突，需要重裁）")
-        print(f"vendor/genppt 状态: {state}")
-        if verify:
-            return _go_all()
-        return 0 if applied else 1
-
-    if action == "apply":
-        if applied:
-            print("已经是打过补丁的状态，无事可做。")
-        elif not can_apply:
-            print("补丁打不上：vendor/genppt 可能不是 61df963 的原始树。", file=sys.stderr)
-            return 1
-        else:
-            rc = gitapply([])
-            if rc != 0:
-                return rc
-            print(f"已应用 {patch_path.name}（{len(files)} 个文件）")
-    elif action == "revert":
-        if not applied:
-            print("当前没有应用补丁，无事可做。")
-        else:
-            rc = gitapply(["-R"])
-            if rc != 0:
-                return rc
-            print("已回退补丁（vendor/genppt 回到上游原始状态）")
-
-    if verify:
-        return _go_all()
-    return 0
-
-
-def _go_all() -> int:
-    for target in ("build", "vet", "test"):
-        rc = _go(target)
-        if rc != 0:
-            return rc
-    return 0
-
-
-def _go(target: str) -> int:
-    """在 vendor/genppt 里跑 go build / vet / test。"""
-    import shutil as _sh
-
-    go = _sh.which("go")
-    if not go:
-        print("PATH 里没有 go，跳过 Go 校验", file=sys.stderr)
-        return 0
-    print(f"$ go {target} ./...  (vendor/genppt)")
-    r = subprocess.run([go, target, "./..."], cwd=ROOT / "vendor" / "genppt")
-    return r.returncode
-
-
 def _render_rkit(pptx: str, out_dir: str, dpi: str) -> int:
     """LibreOffice 路线：libreoffice-kit 的 cli.js（自带 soffice，机器上不用装 LO）。"""
     cli = os.environ.get("RENDER_CLI", "")
@@ -332,12 +251,6 @@ def main(argv: list[str] | None = None) -> int:
     sp.add_argument("--out-dir", default="", help="产物目录，默认临时目录")
     sp.add_argument("--keep", action="store_true", help="保留产物")
 
-    sp = sub.add_parser("genppt", help="内嵌 genppt 的补丁管理（check/apply/revert）")
-    sp.add_argument("action", nargs="?", default="check",
-                    choices=["check", "apply", "revert"], help="默认 check")
-    sp.add_argument("--patch", default="", help="补丁路径，默认 skill/scripts/genppt-effects.patch")
-    sp.add_argument("--go", action="store_true", help="顺带跑 go build/vet/test")
-
     args = p.parse_args(argv)
 
     if args.cmd == "list":
@@ -370,9 +283,6 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.cmd == "verify":
         return verify(args.themes, args.out_dir, args.keep)
-
-    if args.cmd == "genppt":
-        return genppt(args.action, args.patch, args.go)
 
     return 1
 
