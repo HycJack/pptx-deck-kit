@@ -27,6 +27,11 @@ jobs:
       - name: 语法检查
         run: python -m compileall -q skill/scripts tasks.py
 
+      - name: 内嵌 genppt = 上游树 + 补丁（反向能打上说明状态一致）
+        run: |
+          git apply --check -R --directory=vendor/genppt -p1 skill/scripts/genppt-effects.patch
+          python tasks.py genppt check
+
       - name: 14 套主题 × 13 个版式全部 lint（error 必须为 0）
         run: python tasks.py verify --out-dir /tmp/verify
 
@@ -46,7 +51,7 @@ jobs:
           if-no-files-found: ignore
 
   go-writer:
-    name: go writer 能编译
+    name: go writer（含补丁）
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -57,3 +62,5 @@ jobs:
         with:
           go-version: "1.24"
       - run: go build ./...
+      - run: go vet ./...
+      - run: go test ./...

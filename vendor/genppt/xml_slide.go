@@ -65,8 +65,16 @@ func (s *Slide) generateSlide() string {
 	sb.WriteString(`</p:cSld>`)
 	sb.WriteString(`<p:clrMapOvr><a:masterClrMapping/></p:clrMapOvr>`)
 
-	// 生成时间轴（用于自动播放媒体）
+	// 切换（必须是 clrMapOvr 之后的第一个元素）
+	if tr := s.generateTransition(); tr != "" {
+		sb.WriteString(tr)
+	}
+
+	// 时间轴：有入场动画时走动画时间轴（其中已含自动播放媒体）
 	timing := s.generateTiming()
+	if len(s.animations) > 0 {
+		timing = s.generateAnimTiming()
+	}
 	if timing != "" {
 		sb.WriteString(timing)
 	}
@@ -211,13 +219,8 @@ func (s *Slide) generateBackground() string {
 	sb.WriteString(`<p:bg>`)
 	sb.WriteString(`<p:bgPr>`)
 
-	if s.background.Color != "" {
-		sb.WriteString(`<a:solidFill>`)
-		sb.WriteString(`<a:srgbClr val="`)
-		sb.WriteString(ParseColor(s.background.Color))
-		sb.WriteString(`"/>`)
-		sb.WriteString(`</a:solidFill>`)
-	}
+	// 填充：渐变背景优先，其次纯色
+	writeFill(&sb, s.background.Color, 0, s.background.Gradient)
 
 	sb.WriteString(`<a:effectLst/>`)
 	sb.WriteString(`</p:bgPr>`)
@@ -440,45 +443,14 @@ func (s *Slide) generateShape(sh *shapeObject, id int) string {
 	sb.WriteString(getShapePreset(sh.shapeType))
 	sb.WriteString(`"><a:avLst/></a:prstGeom>`)
 
-	// 填充
-	if sh.options.Fill != "" {
-		sb.WriteString(`<a:solidFill>`)
-		sb.WriteString(`<a:srgbClr val="`)
-		sb.WriteString(ParseColor(sh.options.Fill))
-		sb.WriteString(`"`)
-		if sh.options.Transparency > 0 {
-			sb.WriteString(`><a:alpha val="`)
-			sb.WriteString(itoa(int((100 - sh.options.Transparency) * 1000)))
-			sb.WriteString(`"/></a:srgbClr>`)
-		} else {
-			sb.WriteString(`/>`)
-		}
-		sb.WriteString(`</a:solidFill>`)
-	} else {
-		sb.WriteString(`<a:noFill/>`)
-	}
+	// 填充（渐变优先于纯色）
+	writeFill(&sb, sh.options.Fill, sh.options.Transparency, sh.options.Gradient)
 
-	// 边框
-	if sh.options.LineColor != "" && sh.options.LineWidth > 0 {
-		sb.WriteString(`<a:ln w="`)
-		sb.WriteString(itoa(int(sh.options.LineWidth * 12700)))
-		sb.WriteString(`">`)
-		sb.WriteString(`<a:solidFill>`)
-		sb.WriteString(`<a:srgbClr val="`)
-		sb.WriteString(ParseColor(sh.options.LineColor))
-		sb.WriteString(`"/>`)
-		sb.WriteString(`</a:solidFill>`)
-		sb.WriteString(`</a:ln>`)
-	}
+	// 边框：无边框必须显式写 noFill，否则会回落到主题默认描边
+	writeLine(&sb, sh.options)
 
-	// 阴影效果
-	if sh.options.Shadow {
-		sb.WriteString(`<a:effectLst>`)
-		sb.WriteString(`<a:outerShdw blurRad="50800" dist="38100" dir="2700000" algn="tl" rotWithShape="0">`)
-		sb.WriteString(`<a:srgbClr val="000000"><a:alpha val="40000"/></a:srgbClr>`)
-		sb.WriteString(`</a:outerShdw>`)
-		sb.WriteString(`</a:effectLst>`)
-	}
+	// 阴影（ShadowFX 优先于 Shadow）
+	writeShadow(&sb, sh.options)
 
 	sb.WriteString(`</p:spPr>`)
 

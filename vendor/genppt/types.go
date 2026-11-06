@@ -42,17 +42,19 @@ type TextOptions struct {
 
 // ShapeOptions 形状选项
 type ShapeOptions struct {
-	X            float64     // X坐标（英寸）
-	Y            float64     // Y坐标（英寸）
-	Width        float64     // 宽度（英寸）
-	Height       float64     // 高度（英寸）
-	Fill         string      // 填充颜色（十六进制）
-	LineColor    string      // 边框颜色（十六进制）
-	LineWidth    float64     // 边框宽度（磅）
-	LineStyle    BorderStyle // 边框样式
-	Rotate       float64     // 旋转角度（度）
-	Transparency float64     // 透明度（0-100）
-	Shadow       bool        // 是否有阴影
+	X            float64        // X坐标（英寸）
+	Y            float64        // Y坐标（英寸）
+	Width        float64        // 宽度（英寸）
+	Height       float64        // 高度（英寸）
+	Fill         string         // 填充颜色（十六进制）
+	LineColor    string         // 边框颜色（十六进制），传 "none" 等价于 BorderNone
+	LineWidth    float64        // 边框宽度（磅）
+	LineStyle    BorderStyle    // 边框样式，BorderNone 时不会注入默认边框
+	Rotate       float64        // 旋转角度（度）
+	Transparency float64        // 透明度（0-100）
+	Shadow       bool           // 是否有阴影（默认参数）
+	Gradient     *GradientFill  // 渐变填充，设置后优先于 Fill
+	ShadowFX     *ShadowOptions // 阴影参数，设置后优先于 Shadow
 }
 
 // TableOptions 表格选项
@@ -111,9 +113,10 @@ type ImageOptions struct {
 
 // BackgroundOptions 背景选项
 type BackgroundOptions struct {
-	Color string // 纯色背景（十六进制）
-	Image string // 背景图片路径
-	Data  []byte // 背景图片数据
+	Color    string        // 纯色背景（十六进制）
+	Image    string        // 背景图片路径
+	Data     []byte        // 背景图片数据
+	Gradient *GradientFill // 渐变背景，设置后优先于 Color
 }
 
 // slideObject 幻灯片对象接口
@@ -163,6 +166,39 @@ type Slide struct {
 	background   *BackgroundOptions
 	notes        string
 	number       int // 幻灯片序号
+	animations   []animationEntry
+	transition   TransitionKind
+}
+
+// animationEntry 一条入场动画记录
+type animationEntry struct {
+	objectIndex int // 对应 objects 下标（渲染时换算成 spid = 下标+2）
+	effect      AnimEffect
+	delay       int // 毫秒
+	duration    int // 毫秒
+}
+
+// GradientStop 渐变色标
+type GradientStop struct {
+	Pos   float64 // 位置 0-100
+	Color string  // 十六进制颜色
+	Alpha float64 // 不透明度 0-100，100 表示不透明
+}
+
+// GradientFill 渐变填充
+type GradientFill struct {
+	Stops  []GradientStop // 至少 2 个色标
+	Angle  float64        // 角度（度），0 为从左到右
+	Radial bool           // true 为径向渐变（从中心向外）
+}
+
+// ShadowOptions 阴影参数
+type ShadowOptions struct {
+	Blur      float64 // 模糊半径（磅）
+	Dist      float64 // 偏移距离（磅）
+	Direction float64 // 方向（度），90 为正下方
+	Color     string  // 阴影颜色
+	Alpha     float64 // 不透明度 0-100
 }
 
 // Presentation 演示文稿结构

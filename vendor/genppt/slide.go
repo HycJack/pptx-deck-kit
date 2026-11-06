@@ -37,14 +37,20 @@ func (s *Slide) AddShape(shapeType ShapeType, opts ShapeOptions) *Slide {
 		options:   opts,
 	}
 	// 设置默认值
-	if obj.options.Fill == "" {
+	if obj.options.Fill == "" && obj.options.Gradient == nil {
 		obj.options.Fill = "4472C4" // Office默认蓝色
 	}
-	if obj.options.LineWidth == 0 {
-		obj.options.LineWidth = 1.0
+	if obj.options.LineStyle == "" {
+		obj.options.LineStyle = BorderSolid
 	}
-	if obj.options.LineColor == "" {
-		obj.options.LineColor = "2F5496"
+	// 无边框时不注入默认描边，否则 PowerPoint 会画出 2F5496 的边框
+	if obj.options.LineStyle != BorderNone && obj.options.LineColor != "none" {
+		if obj.options.LineWidth == 0 {
+			obj.options.LineWidth = 1.0
+		}
+		if obj.options.LineColor == "" {
+			obj.options.LineColor = "2F5496"
+		}
 	}
 	s.objects = append(s.objects, obj)
 	return s
@@ -162,6 +168,79 @@ func (s *Slide) SetNotes(notes string) *Slide {
 // SetLayout 设置幻灯片布局
 func (s *Slide) SetLayout(layout SlideLayout) *Slide {
 	s.layout = layout
+	return s
+}
+
+// 图层顺序：objects 切片的顺序就是 spTree 的顺序，即渲染时的叠压顺序。
+
+// SendToBack 把最后添加的对象移到最底层
+func (s *Slide) SendToBack() *Slide {
+	return s.ZOrder(0)
+}
+
+// BringToFront 把最后添加的对象移到最顶层
+func (s *Slide) BringToFront() *Slide {
+	return s.ZOrder(len(s.objects) - 1)
+}
+
+// ZOrder 把最后添加的对象移到指定层（0 为最底层）
+func (s *Slide) ZOrder(index int) *Slide {
+	n := len(s.objects)
+	if n == 0 {
+		return s
+	}
+	if index < 0 {
+		index = 0
+	}
+	if index > n-1 {
+		index = n - 1
+	}
+	obj := s.objects[n-1]
+	rest := append([]slideObject{}, s.objects[:n-1]...)
+	s.objects = append(rest[:index], append([]slideObject{obj}, rest[index:]...)...)
+	return s
+}
+
+// SetTransition 设置本页切换效果
+func (s *Slide) SetTransition(kind TransitionKind) *Slide {
+	s.transition = kind
+	return s
+}
+
+// AnimateLast 给最后添加的对象加入场动画。
+// delay 与 duration 单位为毫秒；duration <= 0 时取 500ms。
+func (s *Slide) AnimateLast(effect AnimEffect, delay, duration int) *Slide {
+	if len(s.objects) == 0 {
+		return s
+	}
+	if effect == "" {
+		effect = AnimFade
+	}
+	if duration <= 0 {
+		duration = 500
+	}
+	s.animations = append(s.animations, animationEntry{
+		objectIndex: len(s.objects) - 1,
+		effect:      effect,
+		delay:       delay,
+		duration:    duration,
+	})
+	return s
+}
+
+// AnimateAll 给当前所有对象按加入顺序错峰加入场动画
+func (s *Slide) AnimateAll(effect AnimEffect, stagger, duration int) *Slide {
+	for i := range s.objects {
+		if duration <= 0 {
+			duration = 500
+		}
+		s.animations = append(s.animations, animationEntry{
+			objectIndex: i,
+			effect:      effect,
+			delay:       i * stagger,
+			duration:    duration,
+		})
+	}
 	return s
 }
 

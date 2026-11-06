@@ -203,8 +203,8 @@ skill/                     ← 可以直接装进 agent 的技能包（SKILL.md 
   assets/
     themes.json            14 套主题注册表
     fonts/                 6 个 OFL 字体 + 许可证
-tasks.py                   ← 统一入口：list / preview / sheet / lint / render / fonts
-vendor/genppt/             ← 内嵌的 Go 写入器（MIT，见 NOTICE.md）
+tasks.py                   ← 统一入口：list / preview / sheet / lint / render / fonts / verify / genppt
+vendor/genppt/             ← 上游 61df963 原始树 + 已打补丁（MIT，见 NOTICE.md）
 examples/                  ← 4 个成品 pptx + 5 张预览图
 LICENSE / NOTICE.md        代码 MIT；第三方与字体授权
 requirements.txt           唯一硬依赖：python-pptx
@@ -233,8 +233,17 @@ PowerPoint 文件里只存字体名，**不存字形**——`EmbedTrueTypeFonts`
 ## genppt 为什么内嵌而不是 submodule
 
 - 这个仓库要能 clone 完直接跑（Go 只用来重写 XML，不装也能用 Python 那条路）
-- 本地对 genppt 打过补丁（渐变/阴影/图层/动画），补丁也在 `skill/scripts/genppt-effects.patch`
-- 上游是 MIT，内嵌合法，详见 [NOTICE.md](NOTICE.md)（含 pin 的 commit）
+- `vendor/genppt/` 里是上游 `61df963` 的**原始 39 个文件 + 已打上补丁**，仓库里看到的就是能编译的状态
+- 补丁单独留档：`skill/scripts/genppt-effects.patch`（渐变/阴影/透明度/图层/动画），
+  上游升级时换原始树再重放，别手改 `vendor/`
+
+  ```bash
+  python tasks.py genppt check       # 状态 + 补丁动哪些文件（已应用时 exit 0）
+  python tasks.py genppt revert      # 回退，换成上游新版本
+  python tasks.py genppt apply --go  # 重放补丁 + go build/vet/test
+  ```
+
+- 上游是 MIT，内嵌合法，详见 [NOTICE.md](NOTICE.md)（含 pin 的 commit 与逐文件改动说明）
 
 ## 已知边界
 

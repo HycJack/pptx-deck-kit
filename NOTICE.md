@@ -9,9 +9,28 @@
 - 许可证：**MIT**（上游仓库 README「许可证」一节声明，未附独立 LICENSE 文件）
 - pin 的 commit：`61df96324be9e0796497abc7bfdc0baa3de56a7f`（2026-01-01）
 - 为什么内嵌：本仓库要 clone 完直接可用，Go 那层只负责写 OOXML，不装 Go 也能走 python-pptx 那条路
-- 改动：`skill/scripts/genppt-effects.patch` 里是一份可 `git apply` 的补丁，加的是
-  渐变填充、阴影、透明度、图层顺序、动画（`p:timing`）——上游这些能力缺失或不可控。
-  补丁同时保留在 `skill/scripts/` 下，方便对上游新版本重放。
+- 仓库里的状态：**上游 `61df963` 的原始 39 个文件 + 已打上补丁**。补丁动 6 个文件：
+
+  | 文件 | 性质 | 内容 |
+  |---|---|---|
+  | `xml_effects.go` | 新增 | 渐变填充、阴影、透明度、图层顺序、`p:timing` 动画的 XML 生成 |
+  | `xml_effects_test.go` | 新增 | 上述能力的单测（`go test ./...` 覆盖） |
+  | `enums.go` | 修改 | 补齐效果相关枚举（渐变方向、阴影预设、动画类型） |
+  | `types.go` | 修改 | 效果/动画字段 |
+  | `slide.go` | 修改 | 把效果挂到形状、幻灯片切换 |
+  | `xml_slide.go` | 修改 | 动画节点插在 `p:sld` 的正确位置（否则 PowerPoint 静默丢弃） |
+
+- 补丁管理（上游升级时照这个走，别手改 `vendor/`）：
+
+  ```bash
+  python tasks.py genppt check      # 现在是什么状态、补丁动哪些文件
+  python tasks.py genppt revert     # 回到上游原始树，方便换新版本
+  # …把 vendor/genppt 换成上游新 commit 的原始树…
+  python tasks.py genppt apply --go # 重放补丁，顺带 go build/vet/test
+  ```
+
+  打不上（context 冲突）就重新裁一遍补丁，让 `skill/scripts/genppt-effects.patch` 始终是
+  「上游 → 改造」的完整说明；这样也能把改动提回上游。
 
 ## 2. beautiful-html-templates — 主题注册表的上游
 
