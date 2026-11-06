@@ -161,6 +161,9 @@ cp -r skill ~/.dsh/skills/generating-pptx-decks        # Windows: %USERPROFILE%\
 | R7 | 中文段落 `algn="just"`（实测不拉伸，纯白设） |
 | R8 | 文字色 vs **局部底色**对比度 <3.0（表头那种「纸色字压墨色块」必须查局部，查整页会误报 1.00） |
 
+linter 是读回 pptx 的真实 XML 查的，跟哪个写入器生成无关——拿 genppt 自己的官方 demo 试，
+它照样报出白字压 `#ED7D31` / `#70AD47` 只有 **2.77 / 2.71**（PowerPoint 里就是糊的）。
+
 全套验收一条命令（CI 跑的就是这个）：
 
 ```bash

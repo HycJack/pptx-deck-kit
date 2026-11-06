@@ -28,11 +28,46 @@ def inch(v):
     return (v or 0) / EMU_IN
 
 
+def frames(shape):
+    """可读的文本容器：[(TextFrame, 局部底色 or None, 几何 or None)]。
+
+    GraphicFrame（表格、图表）**没有** `.text_frame`——`has_text_frame` 是 False，直接取就
+    AttributeError（genppt 的 AddTable 产物会踩到；本仓库的 `table` 版式自己画文本框因此没暴露）。
+    表格按单元格展开，并且真的算单元格几何：否则几行 cell 拼成一段文字，R2 会误报成溢出。
+    """
+    try:
+        if shape.has_text_frame:
+            return [(shape.text_frame, None, None)]
+        if getattr(shape, "has_table", False):
+            t = shape.table
+            colw = [inch(c.width) for c in t.columns]
+            rowh = [inch(r.height) for r in t.rows]
+            x0, y0 = inch(shape.left), inch(shape.top)
+            out, y = [], y0
+            for ri, row in enumerate(t.rows):
+                x = x0
+                for ci, cell in enumerate(row.cells):
+                    bg = None
+                    try:
+                        if cell.fill.type == MSO_FILL.SOLID:
+                            bg = str(cell.fill.fore_color.rgb)
+                    except (TypeError, AttributeError, ValueError):
+                        bg = None
+                    out.append((cell.text_frame, bg, (x, y, colw[ci], rowh[ri])))
+                    x += colw[ci]
+                y += rowh[ri]
+            return out
+    except (AttributeError, ValueError, TypeError, IndexError):
+        pass
+    return []
+
+
 def text_of(shape):
     """段落之间必须补换行：python-pptx 把它们存成独立的 <a:p>，空串拼接会把行数算少。"""
-    if not shape.has_text_frame:
-        return ""
-    return "\n".join(p.text for p in shape.text_frame.paragraphs)
+    paras = []
+    for tf, _, _ in frames(shape):
+        paras.extend(p.text for p in tf.paragraphs)
+    return "\n".join(paras)
 
 
 def char_width_em(ch):
@@ -71,13 +106,13 @@ def est_text_width(text, size_pt):
     return max(per_para) if per_para else 0.0
 
 
-def text_rect(shape, x, y, w, h, txt, size):
+def text_rect(tf, x, y, w, h, txt, size):
     """按对齐方式把文本框收缩到文字真正占据的区间。"""
     tw = min(est_text_width(txt, size), w) if txt else 0.0
     al = None
     try:
-        al = shape.text_frame.paragraphs[0].alignment
-    except IndexError:
+        al = tf.paragraphs[0].alignment if tf is not None else None
+    except (IndexError, AttributeError):
         pass
     if al is not None and int(al) == 2:        # CENTER
         tx = x + (w - tw) / 2
@@ -119,8 +154,23 @@ def filled_rects(slide):
     return out
 
 
-def bg_under(x, y, w, h, fills):
-    """文字框中心点落在哪个色块上——倒序找即取最上层，找不到当白底。
+def slide_bg(slide):
+    """幻灯片背景色（`<p:bg>`）。拿不到就当白底。
+
+    自己这套版式永远是「满幅色块打底」，所以以前只在形状填充里找；换成别人的产物
+    （比如 genppt 的 `SetBackground`）就会拿白底去比白字，误报 1.00。
+    """
+    try:
+        f = slide.background.fill
+        if f.type == MSO_FILL.SOLID:
+            return str(f.fore_color.rgb)
+    except (TypeError, AttributeError, ValueError):
+        pass
+    return "FFFFFF"
+
+
+def bg_under(x, y, w, h, fills, default="FFFFFF"):
+    """文字框中心点落在哪个色块上——倒序找即取最上层，找不到就用 default（通常整页底色）。
 
     表头「纸色字压墨色块」只有查局部底色才算得对；用整页底色会误报成 1.00。
     """
@@ -128,23 +178,28 @@ def bg_under(x, y, w, h, fills):
     for fx, fy, fw, fh, color in reversed(fills):
         if fx <= cx <= fx + fw and fy <= cy <= fy + fh:
             return color
-    return "FFFFFF"
+    return default
 
 
-def run_colors(sh):
-    """每个 run 的显式颜色 + 字号。没显式设色（继承布局）的跳过，避免误报。"""
+def run_colors(shape, page_bg):
+    """每个 run 的显式颜色 + 字号 + 压着的底色。没显式设色（继承布局）的跳过，避免误报。
+
+    底色优先用「最近的一层实色填充」：表格单元格自己的填充 → 否则回到调用方算的局部/整页底色。
+    """
     out = []
-    for p in sh.text_frame.paragraphs:
-        for r in p.runs:
-            if not r.text.strip():
-                continue
-            try:
-                if r.font.color is None or r.font.color.type is None:
+    for tf, local_bg, _ in frames(shape):
+        for p in tf.paragraphs:
+            for r in p.runs:
+                if not r.text.strip():
                     continue
-                rgb = str(r.font.color.rgb)
-            except (AttributeError, ValueError, TypeError):
-                continue
-            out.append((rgb, r.font.size.pt if r.font.size else 18.0, r.text))
+                try:
+                    if r.font.color is None or r.font.color.type is None:
+                        continue
+                    rgb = str(r.font.color.rgb)
+                except (AttributeError, ValueError, TypeError):
+                    continue
+                out.append((rgb, r.font.size.pt if r.font.size else 18.0, r.text,
+                            local_bg or page_bg))
     return out
 
 
@@ -158,6 +213,7 @@ def check(path):
         shapes = []
         sizes = []
         fills = filled_rects(slide)
+        page_bg = slide_bg(slide)
         for sh in slide.shapes:
             try:
                 x, y = inch(sh.left), inch(sh.top)
@@ -174,26 +230,24 @@ def check(path):
                     })
 
             txt = text_of(sh)
-            if txt.strip():
-                sz = None
-                for p in sh.text_frame.paragraphs:
-                    for r in p.runs:
-                        if r.font.size:
-                            sz = r.font.size.pt
-                            break
-                    if sz:
-                        break
-                sz = sz or 18.0
-                sizes.append((sz, txt))
+            # 逐个文本容器算：文本框中只有一个，表格按单元格（几何、底色各算各的）
+            for tf, cell_bg, box in frames(sh):
+                ftxt = "\n".join(p.text for p in tf.paragraphs)
+                if not ftxt.strip():
+                    continue
+                fx, fy, fw, fh = box or (x, y, w, h)
+                fsz = next((r.font.size.pt for p in tf.paragraphs for r in p.runs if r.font.size),
+                           18.0)
+                sizes.append((fsz, ftxt))
                 # R2 文字溢出（估）
-                lines = est_lines(txt, w, sz)
-                need = lines * sz * line_factor(sz) / 72.0              # 见 line_factor()
-                if need > h + 0.15:
+                lines = est_lines(ftxt, fw, fsz)
+                need = lines * fsz * line_factor(fsz) / 72.0            # 见 line_factor()
+                if need > fh + 0.15:
                     problems.append({
                         "rule": "R2", "slide": si, "level": "error",
-                        "msg": f"文字可能溢出：{sz:.1f}pt × 约{lines}行 需 {need:.2f}in，框高 {h:.2f}in｜{txt.split(chr(10))[0][:22]}",
+                        "msg": f"文字可能溢出：{fsz:.1f}pt × 约{lines}行 需 {need:.2f}in，框高 {fh:.2f}in｜{ftxt.split(chr(10))[0][:22]}",
                     })
-                shapes.append(text_rect(sh, x, y, w, h, txt, sz))
+                shapes.append(text_rect(tf, fx, fy, fw, fh, ftxt, fsz))
 
             # R3 主题蓝残留
             xml = sh._element.xml
@@ -206,7 +260,7 @@ def check(path):
             # R6 中文 run 缺 a:ea（中文会掉回默认字体，一行里两种字形）
             if CJK.search(txt) and not any(
                 r._r.find(qn("a:rPr")) is not None and r._r.find(qn("a:rPr")).find(qn("a:ea")) is not None
-                for p in sh.text_frame.paragraphs for r in p.runs
+                for tf, _, _ in frames(sh) for p in tf.paragraphs for r in p.runs
             ):
                 warnings.append({
                     "rule": "R6", "slide": si, "level": "warn",
@@ -220,9 +274,10 @@ def check(path):
                     "msg": f"中文段落 algn=\"just\" 实测不拉伸，改用 l（左对齐）或 dist（分散对齐）｜{txt.split(chr(10))[0][:16]}",
                 })
 
-            # R8 文字色 vs 页面底色：亮强调色（酸绿/柠檬黄）当正文会彻底消失
-            bg = bg_under(x, y, w, h, fills)
-            for rgb, pt, run_text in run_colors(sh):
+            # R8 文字色 vs 底色：亮强调色（酸绿/柠檬黄）当正文会彻底消失
+            local_bg = bg_under(x, y, w, h, fills, default=page_bg)
+            for rgb, pt, run_text, run_bg in run_colors(sh, local_bg):
+                bg = run_bg
                 c = contrast(rgb, bg)
                 if c < 3.0:
                     problems.append({

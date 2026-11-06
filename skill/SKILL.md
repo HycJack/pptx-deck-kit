@@ -99,6 +99,8 @@ git clone https://github.com/CoolBanHub/genppt
     是字没了。14 套主题里 5 套的强调色在白纸上是 1.0–1.8。规则：文字走 `accent_text`
     （对比不足自动退回墨色），细线走 `accent_mark`，反色页走 `on_ink`，
     色块上的字用 `tint_pair()` 连块带字一起定。`lint_pptx.py` 的 R8 会按**局部底色**查这一条。
+    它是读回 pptx 真实 XML 查的，所以也查得了别人的产物（genppt 官方 demo 就被抓出白字压
+    `#ED7D31`/`#70AD47` 只有 2.77/2.71）；表格按单元格算几何和底色。
 19. **强调色换到底色上要现算，别复用主题级结论。** `accent_text` 只对纸色验过；表格的斑马行
     比纸色暗一档，grove 的砖红压上去只剩 2.85（R8 报 error）。凡是非纸色底一律走
     `th.accent_readable(bg)`。同理，一套主题干净不代表十四套都干净——验收要跑全量
