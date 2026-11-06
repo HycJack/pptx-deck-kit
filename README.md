@@ -171,12 +171,19 @@ python tasks.py verify          # 14 套主题 × 13 个版式各排一份 + lin
 ```
 
 判据是「**读回来和写进去一致**」，不是「能打开」——PowerPoint 对非法 XML 静默丢弃。
-所以再补一步渲染逐页看：
+所以再补一步渲染逐页看（**可选**，三条路任选一条，都没有也不影响上面任何命令）：
 
 ```bash
-node <libreoffice-kit>/cli.js render --input out.pptx --output-dir preview-v1 --dpi 110
-# 输出目录必须不存在；拿到的 PNG 逐页 read_image，不要凭坐标脑补
+python tasks.py render out.pptx --dpi 110            # auto：rkit → com → soffice 取第一个能用的
+python tasks.py render out.pptx --engine com          # Windows + Office：走 PowerPoint COM
+$env:RENDER_CLI = "...\libreoffice-kit\lib\cli.js"  # 或指定 libreoffice-kit（自带 soffice）
+python tasks.py render out.pptx --engine soffice      # 或机器上装了 LibreOffice
 ```
+
+- `lint` / `preview` / `verify` / `genppt` **全都不需要渲染器**，CI 里也没装 LibreOffice
+- `--engine com` 用 `cscript` + 临时 `.vbs` 驱动 PowerPoint，绕开组策略 AllSigned 对 `.ps1` 的拦截
+- `--engine soffice` 只能出第一页（`--convert-to png` 不支持多页），当兜底
+- 输出目录必须不存在；拿到的 PNG 逐页 `read_image`，不要凭坐标脑补
 
 ## 仓库结构
 

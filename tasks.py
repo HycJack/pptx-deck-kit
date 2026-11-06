@@ -6,10 +6,12 @@
     python tasks.py preview --only kpi-grid,table            # 只排两页
     python tasks.py sheet                                    # 14 套主题样张
     python tasks.py lint out.pptx                            # 8 条规则自检
-    python tasks.py render out.pptx --dpi 110                # 需要 RENDER_CLI
+    python tasks.py render out.pptx --dpi 110                # 可选：rkit → com → soffice
     python tasks.py fonts --check                            # 查自带字体装没装
 
-`render` 依赖 LibreOffice 的 cli.js，路径因机器而异，所以从环境变量取：
+`render` 只是「肉眼看一眼」的补充：lint / preview / verify 都不需要渲染器。
+三条路：libreoffice-kit 的 cli.js（自带 soffice）、PowerPoint COM（Windows + Office）、
+裸 soffice（只出第一页）。cli.js 路径因机器而异，所以从环境变量取：
 
     $env:RENDER_CLI = "...\\libreoffice-kit\\lib\\cli.js"
 """
@@ -161,6 +163,141 @@ def _go(target: str) -> int:
     return r.returncode
 
 
+def _render_rkit(pptx: str, out_dir: str, dpi: str) -> int:
+    """LibreOffice 路线：libreoffice-kit 的 cli.js（自带 soffice，机器上不用装 LO）。"""
+    cli = os.environ.get("RENDER_CLI", "")
+    node = shutil.which("node")
+    if not cli or not Path(cli).exists():
+        return -1
+    if not node:
+        print("PATH 里找不到 node", file=sys.stderr)
+        return 2
+    rc = subprocess.call([node, cli, "render", "--input", pptx,
+                          "--output-dir", out_dir, "--dpi", dpi])
+    pngs = sorted(Path(out_dir).glob("page-*.png"))
+    if pngs:
+        # cli.js 收尾时会打一行 "Image batch cleanup failed" 并返回非 0，图其实是全的
+        print(f"{len(pngs)} 张 PNG → {out_dir}（LibreOffice）")
+        return 0
+    return rc or 1
+
+
+_COM_VBS = r'''Option Explicit
+' Export one PNG per slide with PowerPoint COM.
+' Keep this file pure ASCII: cscript reads .vbs as ANSI, UTF-8 Chinese comments
+' make it fail with "invalid character" at (1,1).
+Dim app, pres, i, outDir, w, h
+If WScript.Arguments.Count < 4 Then WScript.Quit 2
+Set app = CreateObject("PowerPoint.Application")
+Set pres = app.Presentations.Open(WScript.Arguments(0), True, False, False)
+outDir = WScript.Arguments(1)
+w = CLng(WScript.Arguments(2))
+h = CLng(WScript.Arguments(3))
+For i = 1 To pres.Slides.Count
+  pres.Slides(i).Export outDir & "\page-" & Right("0000" & i, 4) & ".png", "PNG", w, h
+Next
+pres.Close
+app.Quit
+'''
+
+
+def _render_com(pptx: str, out_dir: str, dpi: str) -> int:
+    """PowerPoint COM 路线（Windows + 装了 Office）。不依赖 PowerShell 执行策略。
+
+    用 cscript + 临时 .vbs：`.ps1` 在组策略 AllSigned 的机器上跑不起来（本仓库踩过），
+    而 VBScript 不受那条策略管。
+    """
+    if os.name != "nt":
+        return -1
+    cscript = str(Path(os.environ.get("SystemRoot", r"C:\Windows")) / "System32" / "cscript.exe")
+    if not Path(cscript).exists():
+        return -1
+    import tempfile
+
+    from pptx import Presentation
+
+    try:
+        prs = Presentation(pptx)
+        w_in = prs.slide_width / 914400
+        h_in = prs.slide_height / 914400
+    except Exception as e:                                    # noqa: BLE001
+        print(f"读不了 {pptx}: {e}", file=sys.stderr)
+        return 2
+    w_px, h_px = round(w_in * float(dpi)), round(h_in * float(dpi))
+
+    with tempfile.TemporaryDirectory(prefix="pptx-com-") as td:
+        vbs = Path(td) / "export.vbs"
+        vbs.write_text(_COM_VBS, encoding="ascii")
+        r = subprocess.run([cscript, "//nologo", str(vbs), str(Path(pptx).resolve()),
+                            str(Path(out_dir).resolve()), str(w_px), str(h_px)],
+                           capture_output=True, text=True, encoding="utf-8", errors="replace")
+    pngs = sorted(Path(out_dir).glob("page-*.png"))
+    if pngs:
+        print(f"{len(pngs)} 张 PNG → {out_dir}（PowerPoint COM，{w_px}×{h_px}）")
+        return 0
+    if r.stderr.strip():
+        print(r.stderr.strip()[:400], file=sys.stderr)
+    print("PowerPoint COM 导出失败：确认装了 Office、且 pptx 路径没有中文/空格问题。",
+          file=sys.stderr)
+    return r.returncode or 1
+
+
+def _render_soffice(pptx: str, out_dir: str) -> int:
+    """裸 soffice 路线：只出第一页（`--convert-to png` 不支持多页），当兜底用。"""
+    soffice = shutil.which("soffice") or shutil.which("libreoffice")
+    if not soffice:
+        return -1
+    import tempfile
+
+    with tempfile.TemporaryDirectory(prefix="pptx-lo-") as td:
+        r = subprocess.run([soffice, "--headless", "--convert-to", "png",
+                            "--outdir", td, str(Path(pptx).resolve())],
+                           capture_output=True, text=True, encoding="utf-8", errors="replace")
+        src = next(Path(td).glob("*.png"), None)
+        if not src:
+            print(r.stderr.strip()[:300] or "soffice 没出图", file=sys.stderr)
+            return 1
+        Path(out_dir).mkdir(parents=True, exist_ok=True)
+        shutil.copy2(src, Path(out_dir) / "page-0001.png")
+    print(f"1 张 PNG → {out_dir}（soffice 只出第一页；要看全篇请用 --engine rkit 或 com）")
+    return 0
+
+
+def render(pptx: str, out_dir: str | None, dpi: str, engine: str) -> int:
+    """渲染验收：三条路都行，都没有也能干活（只跑 lint）。
+
+    lint / preview / verify 全部不需要渲染器——渲染只是「肉眼看一眼」的补充手段。
+    """
+    if not Path(pptx).exists():
+        print(f"文件不存在: {pptx}", file=sys.stderr)
+        return 2
+    out_dir = out_dir or (str(Path(pptx).with_suffix("")) + "-render")
+    if Path(out_dir).exists():
+        print(f"输出目录已存在：{out_dir}（先删掉，避免混进旧图）", file=sys.stderr)
+        return 2
+    # cli.js 的 mkdir 不递归，父目录不存在会 ENOENT
+    Path(out_dir).parent.mkdir(parents=True, exist_ok=True)
+
+    order = {"auto": ["rkit", "com", "soffice"],
+             "rkit": ["rkit"], "com": ["com"], "soffice": ["soffice"]}[engine]
+    for name in order:
+        if name == "rkit":
+            rc = _render_rkit(pptx, out_dir, dpi)
+        elif name == "com":
+            Path(out_dir).mkdir(parents=True, exist_ok=True)
+            rc = _render_com(pptx, out_dir, dpi)
+        else:
+            rc = _render_soffice(pptx, out_dir)
+        if rc != -1:
+            return rc
+    print("找不到可用的渲染器。三条路选一条：", file=sys.stderr)
+    print("  1) LibreOffice：装 LO 后 `--engine soffice`；或用 libreoffice-kit 的 cli.js：", file=sys.stderr)
+    print('     $env:RENDER_CLI = "...\\libreoffice-kit\\lib\\cli.js"', file=sys.stderr)
+    print("  2) Windows + Office：`--engine com`（走 PowerPoint COM，不需要 LO）", file=sys.stderr)
+    print("  3) 都不装：跳过渲染，`python tasks.py lint out.pptx` 也能查 8 条规则", file=sys.stderr)
+    return 2
+
+
 def main(argv: list[str] | None = None) -> int:
     p = argparse.ArgumentParser(prog="tasks.py", description="pptx-deck-kit 统一入口")
     sub = p.add_subparsers(dest="cmd", required=True)
@@ -179,10 +316,12 @@ def main(argv: list[str] | None = None) -> int:
     sp = sub.add_parser("lint", help="版面自检")
     sp.add_argument("pptx")
 
-    sp = sub.add_parser("render", help="渲成 PNG 逐页看（需要 RENDER_CLI）")
+    sp = sub.add_parser("render", help="渲成 PNG 逐页看（rkit / com / soffice，都不是必须的）")
     sp.add_argument("pptx")
     sp.add_argument("--dpi", default="110")
     sp.add_argument("--out-dir", default=None, help="默认 <pptx 同名>-render，必须不存在")
+    sp.add_argument("--engine", default="auto", choices=["auto", "rkit", "com", "soffice"],
+                    help="auto=rkit→com→soffice，取第一个可用的")
 
     sp = sub.add_parser("fonts", help="查/装自带 OFL 字体（Windows）")
     sp.add_argument("--check", action="store_true", help="只查缺哪些")
@@ -219,28 +358,7 @@ def main(argv: list[str] | None = None) -> int:
         return call("lint_pptx.py", args.pptx)
 
     if args.cmd == "render":
-        cli = os.environ.get("RENDER_CLI", "")
-        node = shutil.which("node")
-        if not cli or not Path(cli).exists():
-            print("需要环境变量 RENDER_CLI 指向 libreoffice-kit 的 cli.js", file=sys.stderr)
-            return 2
-        if not node:
-            print("PATH 里找不到 node", file=sys.stderr)
-            return 2
-        out_dir = args.out_dir or (str(Path(args.pptx).with_suffix("")) + "-render")
-        if Path(out_dir).exists():
-            print(f"输出目录已存在（cli.js 会报 mkdir EEXIST）：{out_dir}", file=sys.stderr)
-            return 2
-        # cli.js 的 mkdir 不递归：父目录不存在会 ENOENT
-        Path(out_dir).parent.mkdir(parents=True, exist_ok=True)
-        rc = subprocess.call([node, cli, "render", "--input", args.pptx,
-                              "--output-dir", out_dir, "--dpi", args.dpi])
-        pngs = sorted(Path(out_dir).glob("page-*.png"))
-        if pngs:
-            # cli.js 收尾时会打一行 "Image batch cleanup failed" 并返回非 0，图其实是全的
-            print(f"{len(pngs)} 张 PNG → {out_dir}")
-            return 0
-        return rc or 1
+        return render(args.pptx, args.out_dir, args.dpi, args.engine)
 
     if args.cmd == "fonts":
         a = []

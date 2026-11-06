@@ -68,4 +68,7 @@
 
 ## 5. LibreOffice（仅开发期）
 
-`libreoffice-kit` 用来把 pptx 渲成 PNG 做视觉验收，不随本仓库分发。
+**可选**：只在把 pptx 渲成 PNG 做肉眼验收时才用到，不随本仓库分发，也不是依赖。
+`tasks.py render` 有三条路：libreoffice-kit 的 cli.js（自带 soffice，机器上不用装 LO）/
+PowerPoint COM（Windows + Office，`--engine com`）/ 裸 `soffice`（只出第一页）。
+三者都没有时，`lint`、`preview`、`verify` 照常工作。

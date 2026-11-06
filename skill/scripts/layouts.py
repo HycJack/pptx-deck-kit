@@ -124,8 +124,14 @@ def hairline(slide, th, x, y, w, color=None, h=0.008):
 
 
 def footer(slide, th, g, num, total, note=""):
-    label(slide, th, g.M, g.H - 0.5, note or f"{num:02d} / {total:02d}", w=g.content_w * 0.7)
-    textbox(slide, g.W - g.M - 0.9, g.H - 0.5, 0.9, 0.2, text=f"{num:02d}",
+    """页码只出现一次：右下角 `NN / NN`；左侧留给 running note，没 note 就留白。
+
+    以前 note 为空时左边退回页码、右边又印一遍页码，同一页两个 12。
+    """
+    if note:
+        label(slide, th, g.M, g.H - 0.5, note, w=g.content_w * 0.7)
+    textbox(slide, g.W - g.M - 1.05, g.H - 0.5, 1.05, 0.2,
+            text=f"{num:02d} / {total:02d}",
             color=th.ink, size=th.label, latin=th.mono, ea=th.b_ea, align=R)
 
 

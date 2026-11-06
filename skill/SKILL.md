@@ -81,6 +81,8 @@ git clone https://github.com/CoolBanHub/genppt
 12. **形状级 `a:gradFill` 必须排在 `a:ln` 之前**（`spPr` schema 顺序）。
     顺序错了不报错，只是渐变没了——和文字渐变排在 `a:latin` 后面是同一种病。
 13. **LibreOffice cli 出图成功也可能 `exit 1`** 并往 stderr 打 `Image batch cleanup failed.`。
+    另外别把 LibreOffice 当硬依赖：很多机器上根本没装，Windows 上用 `--engine com` 走
+    PowerPoint COM 一样能出全页 PNG（`cscript` + 临时 `.vbs`，不受 `.ps1` 执行策略影响）。
     不要用退出码判成败，去查 PNG 文件是否存在、尺寸对不对。
 14. **lint 的溢出是启发式**：报告会写「约 N 行、需 X in、框高 Y in」，
     用这三个数字自己判断，不要只看红不红。
@@ -118,11 +120,14 @@ git clone https://github.com/CoolBanHub/genppt
 # ① 版面自检（路径按 skill 目录改；相对路径以 pptx 所在目录为基准最省事）
 python <skill>/scripts/lint_pptx.py deck.pptx        # 越界/重叠/溢出/字号阶/文字底色对比(R8)/主题蓝
 
-# ② 渲染出来看（输出目录必须不存在，否则 mkdir EEXIST）
-node <libreoffice-kit>/cli.js render --input deck.pptx --output-dir preview-v1 --pages 1,2 --dpi 130
-#    DSH 环境里的 cli.js：
-#    ...\app.asar.unpacked\dsh\node_modules\@deepseek-ai\libreoffice-kit\lib\cli.js
-#    页面号会被重排成 page-0001..；拿到的 PNG 再 read_image 逐页看，不要凭坐标脑补。
+# ② 渲染出来看（可选；输出目录必须不存在，否则 EEXIST）
+#    本仓库统一入口，三选一自动挑：rkit → com → soffice
+python <repo>/tasks.py render deck.pptx --dpi 130
+#    手动指定：--engine com（Windows+Office，走 PowerPoint COM，不需要 LibreOffice）
+#             --engine soffice（装了 LO；只能出第一页）
+#             RENDER_CLI=<libreoffice-kit>/lib/cli.js 走 LibreOffice 全页导出
+#    PNG 是 page-0001..；拿到后 read_image 逐页看，不要凭坐标脑补。
+#    lint / preview / verify 都不需要渲染器——机器上没有 LO 也能干活。
 
 # ③ 动画回读（必须 PowerPoint）
 #    MainSequence.Count 必须等于形状数；EffectType 必须和 presetID 对上
