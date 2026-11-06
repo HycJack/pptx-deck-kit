@@ -25,7 +25,10 @@ jobs:
         run: pip install -r requirements.txt
 
       - name: 语法检查
-        run: python -m compileall -q skill/scripts tasks.py
+        run: python -m compileall -q skill/scripts tasks.py tests
+
+      - name: 单元测试（8 条规则要会响、主题不变量、13 版式链路）
+        run: python -m unittest discover -s tests -t . -v
 
       - name: 14 套主题 × 13 个版式全部 lint（error 必须为 0）
         run: python tasks.py verify --out-dir /tmp/verify

@@ -164,9 +164,10 @@ cp -r skill ~/.dsh/skills/generating-pptx-decks        # Windows: %USERPROFILE%\
 linter 是读回 pptx 的真实 XML 查的，跟哪个写入器生成无关——拿第三方库官方 demo 试，
 它照样报出白字压 `#ED7D31` / `#70AD47` 只有 **2.77 / 2.71**（PowerPoint 里就是糊的）。
 
-全套验收一条命令（CI 跑的就是这个）：
+全套验收（CI 跑的就是这两条）：
 
 ```bash
+python tasks.py test            # 22 个单元测试：8 条规则的触发/不触发、主题不变量、13 版式链路
 python tasks.py verify          # 14 套主题 × 13 个版式各排一份 + lint，全绿才 exit 0
 ```
 
@@ -212,7 +213,8 @@ skill/                     ← 可以直接装进 agent 的技能包（SKILL.md 
   assets/
     themes.json            14 套主题注册表
     fonts/                 6 个 OFL 字体 + 许可证
-tasks.py                   ← 统一入口：list / preview / sheet / lint / render / fonts / verify
+tasks.py                   ← 统一入口：list / preview / sheet / lint / render / fonts / verify / test / doctor
+tests/                     ← 22 个单元测试（lint 规则、主题不变量、排版链路）
 docs/go-pptx-library.md    ← 为什么不自己写 Go 库（评估留档）
 examples/                  ← 4 个成品 pptx + 5 张预览图
 LICENSE / NOTICE.md        代码 MIT；第三方与字体授权

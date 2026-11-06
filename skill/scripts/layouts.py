@@ -62,10 +62,22 @@ class Theme:
         self.accent_text = (self.accent
                             if self.accent_role == "text" and contrast(self.accent, self.paper) >= 3.0
                             else self.ink)
-        self.accent_mark = (self.accent if contrast(self.accent, self.paper) >= 3.0
-                            else mix(self.accent, self.ink, 0.5))
-        self.accent2_mark = (self.accent2 if contrast(self.accent2, self.paper) >= 3.0
-                             else mix(self.accent2, self.ink, 0.45))
+        self.accent_mark = self._mark(self.accent)
+        self.accent2_mark = self._mark(self.accent2)
+
+    def _mark(self, color: str, need: float = 3.0) -> str:
+        """细线/小圆点用的强调色：亮色砸在纸上会看不见，得往墨色压。
+
+        只压一档不够——biennale-yellow 的黄混到 0.5 只有 2.90，还是看不见，
+        所以给一串候选，取第一个够 contrast 的；都不够就用墨色。
+        """
+        if contrast(color, self.paper) >= need:
+            return color
+        for f in (0.5, 0.62, 0.75, 0.88):
+            cand = mix(color, self.ink, f)
+            if contrast(cand, self.paper) >= need:
+                return cand
+        return self.ink
 
     # 常用组合
     def label_style(self):

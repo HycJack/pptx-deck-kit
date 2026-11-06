@@ -8,6 +8,8 @@
     python tasks.py lint out.pptx                            # 8 条规则自检
     python tasks.py render out.pptx --dpi 110                # 可选：rkit → com → soffice
     python tasks.py fonts --check                            # 查自带字体装没装
+    python tasks.py test                                     # 单元测试（22 个，约 20s）
+    python tasks.py doctor                                   # 环境自检：依赖/字体/渲染器一条条列
 
 `render` 只是「肉眼看一眼」的补充：lint / preview / verify 都不需要渲染器。
 三条路：libreoffice-kit 的 cli.js（自带 soffice）、PowerPoint COM（Windows + Office）、
@@ -217,6 +219,72 @@ def render(pptx: str, out_dir: str | None, dpi: str, engine: str) -> int:
     return 2
 
 
+def test() -> int:
+    """单元测试：lint 规则、主题不变量、13 版式排版链路。"""
+    r = subprocess.run([sys.executable, "-m", "unittest", "discover", "-s", "tests", "-t", "."],
+                       cwd=ROOT)
+    return r.returncode
+
+
+def doctor() -> int:
+    """环境自检。换机器第一件事跑这个，别等排到一半发现字体没装。"""
+    import importlib.util as _iu
+
+    ok = True
+    print(f"仓库      {ROOT}")
+
+    try:
+        import pptx
+
+        print(f"python    {sys.version.split()[0]}  ·  python-pptx {pptx.__version__}")
+    except Exception as e:                                    # noqa: BLE001
+        ok = False
+        print(f"python-pptx 导入失败：{e}")
+
+    themes = _theme_slugs()
+    n_layouts = 0
+    try:
+        sys.path.insert(0, str(SCRIPTS))
+        import layouts
+
+        n_layouts = len(layouts.LAYOUTS)
+    except Exception as e:                                    # noqa: BLE001
+        ok = False
+        print(f"layouts.py 加载失败：{e}")
+    finally:
+        sys.path.pop(0)
+    print(f"内容      {len(themes)} 套主题 × {n_layouts} 个版式 = {len(themes) * n_layouts} 页")
+
+    fonts = list((ROOT / "skill" / "assets" / "fonts").glob("*.ttf"))
+    r = subprocess.run([sys.executable, str(SCRIPTS / "install_fonts.py"), "--check"],
+                       capture_output=True, text=True, encoding="utf-8", errors="replace")
+    last = [ln for ln in (r.stdout or r.stderr).splitlines() if ln.strip()]
+    print(f"字体      {len(fonts)} 个随仓库分发 · {last[-1].strip() if last else '检查失败'}")
+    if r.returncode != 0:
+        ok = False
+
+    engines = []
+    cli = os.environ.get("RENDER_CLI", "")
+    if cli and Path(cli).exists() and shutil.which("node"):
+        engines.append(f"rkit({cli})")
+    if os.name == "nt" and (Path(os.environ.get("SystemRoot", r"C:\Windows")) / "System32" / "cscript.exe").exists():
+        import winreg
+
+        try:
+            winreg.OpenKey(winreg.HKEY_CLASSES_ROOT, "PowerPoint.Application").Close()
+            engines.append("com")
+        except OSError:
+            pass
+    if shutil.which("soffice") or shutil.which("libreoffice"):
+        engines.append("soffice")
+    print(f"渲染器    {' / '.join(engines) if engines else '无（可选，不影响 lint/verify）'}")
+
+    print("依赖      lint / preview / verify 都不需要渲染器")
+    print()
+    print("下一步：python tasks.py test  →  python tasks.py verify")
+    return 0 if ok else 1
+
+
 def main(argv: list[str] | None = None) -> int:
     p = argparse.ArgumentParser(prog="tasks.py", description="pptx-deck-kit 统一入口")
     sub = p.add_subparsers(dest="cmd", required=True)
@@ -246,6 +314,9 @@ def main(argv: list[str] | None = None) -> int:
     sp.add_argument("--check", action="store_true", help="只查缺哪些")
     sp.add_argument("--list", action="store_true", help="列出主题用到的字体族")
 
+    sub.add_parser("test", help="单元测试（lint 规则 / 主题不变量 / 排版链路）")
+    sub.add_parser("doctor", help="环境自检：依赖、字体、渲染器")
+
     sp = sub.add_parser("verify", help="14 套主题各排一份 + lint，全绿才算过（CI 用）")
     sp.add_argument("--themes", default="", help="只验证这些 slug，逗号分隔")
     sp.add_argument("--out-dir", default="", help="产物目录，默认临时目录")
@@ -269,6 +340,12 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.cmd == "lint":
         return call("lint_pptx.py", args.pptx)
+
+    if args.cmd == "test":
+        return test()
+
+    if args.cmd == "doctor":
+        return doctor()
 
     if args.cmd == "render":
         return render(args.pptx, args.out_dir, args.dpi, args.engine)

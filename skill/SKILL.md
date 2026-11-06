@@ -115,6 +115,8 @@ python-pptx 那样的 Go 库，见仓库的 `docs/go-pptx-library.md`。
 ```powershell
 # ① 版面自检（路径按 skill 目录改；相对路径以 pptx 所在目录为基准最省事）
 python <skill>/scripts/lint_pptx.py deck.pptx        # 越界/重叠/溢出/字号阶/文字底色对比(R8)/主题蓝
+#    改过 linter 或 themes.json 时，先跑仓库的单元测试（22 个，约 20s）：
+python <repo>/tasks.py test
 
 # ② 渲染出来看（可选；输出目录必须不存在，否则 EEXIST）
 #    本仓库统一入口，三选一自动挑：rkit → com → soffice

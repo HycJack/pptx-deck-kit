@@ -62,6 +62,16 @@ JSON 的价值就在这里——它把「上游的自由设计」翻译成「ppt
 | `rule` | 0.75pt 发丝线、表格线、边框 | 不要大于 1pt；不要用来画装饰条（那是 accent 的活） |
 
 `accent_text_color` 是脚本算出来的：块上文字取 `ink` 或 `#FFFFFF` 里对比度更高的那个。
+
+三个派生角色都是**构造函数保证**的，不是靠人挑：
+
+| 角色 | 保证 | 做法 |
+|---|---|---|
+| `accent_text` | 对纸色 ≥ 3.0 | 不够就退回 `ink`（`accent_role=block` 时直接不用） |
+| `accent_mark` | 对纸色 ≥ 3.0 | 不够就往墨色压，0.5 → 0.62 → 0.75 → 0.88 逐档试（`Theme._mark()`） |
+| `accent_readable(bg)` | 对给定底色 ≥ 4.5 | 同上，往 `best_on(bg)` 混 0.3 → 0.5 → 0.7 → 0.85 |
+
+`tests/test_registry.py` 会把这几个下限重算一遍——改配色时先红的就是它，不用等排完 13 页才发现。
 `sakura-chroma` 的 `accent_block_because` 说明了为什么它 3.4 的对比度仍然只做块：
 五色块是主题本体，红只当块。
 
